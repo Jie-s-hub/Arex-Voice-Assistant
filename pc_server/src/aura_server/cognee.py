@@ -45,7 +45,7 @@ class Memory:
 
 
 class CogneeMemory:
-    """Small local long-term memory store for the AURA rover.
+    """Small local long-term memory store for the AURA audio device.
 
     Cognee intentionally stores only explicit memories: the user has to say
     "remember that ...". This avoids silently collecting personal information
@@ -69,7 +69,6 @@ class CogneeMemory:
             return Decision(
                 intent="conversation",
                 reply=f"I'll remember that {memory.text}.",
-                action=None,
             )
 
         note_match = re.match(
@@ -83,7 +82,6 @@ class CogneeMemory:
             return Decision(
                 intent="conversation",
                 reply=f"Saved in Cognee memory: {memory.text}.",
-                action=None,
             )
 
         if re.match(
@@ -96,7 +94,7 @@ class CogneeMemory:
             else:
                 facts = "; ".join(memory.text for memory in memories)
                 reply = f"I remember: {facts}."
-            return Decision(intent="conversation", reply=reply, action=None)
+            return Decision(intent="conversation", reply=reply)
 
         if re.match(
             r"^(?:forget|delete|clear)\s+(?:everything|my\s+memory|all\s+memories)$",
@@ -108,7 +106,7 @@ class CogneeMemory:
                 if removed
                 else "Cognee memory is already empty."
             )
-            return Decision(intent="conversation", reply=reply, action=None)
+            return Decision(intent="conversation", reply=reply)
 
         forget_match = re.match(r"^(?:please\s+)?forget\s+(?:that\s+)?(.+)$", command)
         if forget_match:
@@ -121,7 +119,7 @@ class CogneeMemory:
                 if removed
                 else "I could not find a matching memory to forget."
             )
-            return Decision(intent="conversation", reply=reply, action=None)
+            return Decision(intent="conversation", reply=reply)
 
         return None
 

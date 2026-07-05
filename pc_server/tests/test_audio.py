@@ -8,7 +8,7 @@ from aura_server.audio import AudioProtocolError, capture_from_start
 
 def start_message(**overrides):
     value = {
-        "session_id": "aura-rover-01-12345678",
+        "session_id": "aura-audio-01-12345678",
         "format": "pcm_s16le",
         "sample_rate_hz": 16000,
         "channels": 1,
@@ -36,4 +36,3 @@ def test_capture_limit_is_enforced():
 def test_invalid_format_is_rejected():
     with pytest.raises(AudioProtocolError, match="pcm_s16le"):
         capture_from_start(start_message(format="mp3"), 2)
-

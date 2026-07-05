@@ -89,21 +89,4 @@ bool AudioIO::writeSpeaker(const uint8_t* pcm, size_t length) {
          written == length;
 }
 
-void AudioIO::playWarningTone() {
-  // Offline fallback: the PC normally follows this cue with the spoken warning.
-  int16_t samples[120];
-  for (uint8_t burst = 0; burst < 2; ++burst) {
-    const float frequency = burst == 0 ? 880.0f : 660.0f;
-    for (uint8_t block = 0; block < 20; ++block) {
-      for (size_t i = 0; i < 120; ++i) {
-        const float phase = 2.0f * PI * frequency *
-                            (block * 120 + i) / config::kSpeakerSampleRate;
-        samples[i] = static_cast<int16_t>(4500.0f * sinf(phase));
-      }
-      writeSpeaker(reinterpret_cast<const uint8_t*>(samples), sizeof(samples));
-    }
-  }
-}
-
 }  // namespace aura
-

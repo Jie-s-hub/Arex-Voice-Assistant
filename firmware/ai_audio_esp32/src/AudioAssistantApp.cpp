@@ -1,4 +1,4 @@
-#include "RoverApp.h"
+#include "AudioAssistantApp.h"
 
 #include <ArduinoJson.h>
 #include <WiFi.h>
@@ -7,13 +7,13 @@
 
 namespace aura {
 
-RoverApp* RoverApp::instance_ = nullptr;
+AudioAssistantApp* AudioAssistantApp::instance_ = nullptr;
 
-void RoverApp::begin() {
+void AudioAssistantApp::begin() {
   instance_ = this;
   Serial.begin(115200);
   display_.begin();
-  alert_.begin();
+  setupVoiceButton();
 
   if (!audio_.begin()) {
     display_.show(Emotion::Error, "I2S failed");
@@ -24,30 +24,25 @@ void RoverApp::begin() {
   startWebSocket();
 }
 
-void RoverApp::loop() {
+void AudioAssistantApp::loop() {
   const uint32_t nowMs = millis();
 
   if (WiFi.status() == WL_CONNECTED && !webSocketStarted_) {
     Serial.printf("Wi-Fi connected: %s\n", WiFi.localIP().toString().c_str());
     startWebSocket();
   } else if (WiFi.status() != WL_CONNECTED &&
-      nowMs - lastReconnectAttemptMs_ >= config::kReconnectPeriodMs) {
+             nowMs - lastReconnectAttemptMs_ >= config::kReconnectPeriodMs) {
+    webSocketConnected_ = false;
+    webSocketStarted_ = false;
     connectWifi();
   }
 
   webSocket_.loop();
-  handleUnoEvent(alert_.update(nowMs), nowMs);
+  updateVoiceButton(nowMs);
   updateRecording(nowMs);
-  executePendingHomeCommand();
-
-  if (warningUntilMs_ != 0 && static_cast<int32_t>(nowMs - warningUntilMs_) >= 0 &&
-      !alert_.obstacleActive() && !recording_ && !assistantAudioActive_) {
-    warningUntilMs_ = 0;
-    display_.show(Emotion::Idle);
-  }
 }
 
-void RoverApp::connectWifi() {
+void AudioAssistantApp::connectWifi() {
   if (WiFi.status() == WL_CONNECTED) {
     return;
   }
@@ -63,12 +58,12 @@ void RoverApp::connectWifi() {
   lastReconnectAttemptMs_ = millis();
 }
 
-void RoverApp::startWebSocket() {
+void AudioAssistantApp::startWebSocket() {
   if (WiFi.status() != WL_CONNECTED) {
     return;
   }
-  const String path = String("/ws/rover/") + ROVER_DEVICE_ID;
-  webSocketHeaders_ = String("Authorization: Bearer ") + ROVER_TOKEN + "\r\n";
+  const String path = String("/ws/audio/") + AUDIO_DEVICE_ID;
+  webSocketHeaders_ = String("Authorization: Bearer ") + AUDIO_DEVICE_TOKEN + "\r\n";
   webSocket_.setExtraHeaders(webSocketHeaders_.c_str());
   webSocket_.begin(PC_SERVER_HOST, PC_SERVER_PORT, path);
   webSocketStarted_ = true;
@@ -77,14 +72,46 @@ void RoverApp::startWebSocket() {
   webSocket_.enableHeartbeat(15000, 3000, 2);
 }
 
-void RoverApp::webSocketThunk(WStype_t type, uint8_t* payload, size_t length) {
+void AudioAssistantApp::setupVoiceButton() {
+  pinMode(config::kVoiceButtonPin,
+          config::kVoiceButtonActiveLow ? INPUT_PULLUP : INPUT_PULLDOWN);
+  voiceButtonRawPressed_ = readVoiceButton();
+  voiceButtonStablePressed_ = voiceButtonRawPressed_;
+  voiceButtonLastChangeMs_ = millis();
+}
+
+bool AudioAssistantApp::readVoiceButton() const {
+  const bool high = digitalRead(config::kVoiceButtonPin) == HIGH;
+  return config::kVoiceButtonActiveLow ? !high : high;
+}
+
+void AudioAssistantApp::updateVoiceButton(uint32_t nowMs) {
+  const bool pressed = readVoiceButton();
+  if (pressed != voiceButtonRawPressed_) {
+    voiceButtonRawPressed_ = pressed;
+    voiceButtonLastChangeMs_ = nowMs;
+  }
+
+  if (pressed == voiceButtonStablePressed_ ||
+      nowMs - voiceButtonLastChangeMs_ < config::kButtonDebounceMs) {
+    return;
+  }
+
+  voiceButtonStablePressed_ = pressed;
+  if (voiceButtonStablePressed_) {
+    startRecording(nowMs);
+  }
+}
+
+void AudioAssistantApp::webSocketThunk(WStype_t type, uint8_t* payload,
+                                       size_t length) {
   if (instance_ != nullptr) {
     instance_->onWebSocketEvent(type, payload, length);
   }
 }
 
-void RoverApp::onWebSocketEvent(WStype_t type, uint8_t* payload,
-                                size_t length) {
+void AudioAssistantApp::onWebSocketEvent(WStype_t type, uint8_t* payload,
+                                         size_t length) {
   switch (type) {
     case WStype_CONNECTED:
       webSocketConnected_ = true;
@@ -112,28 +139,7 @@ void RoverApp::onWebSocketEvent(WStype_t type, uint8_t* payload,
   }
 }
 
-void RoverApp::handleUnoEvent(UnoEvent event, uint32_t nowMs) {
-  if (event == UnoEvent::None) {
-    return;
-  }
-  if (event == UnoEvent::Obstacle) {
-    if (recording_) {
-      finishRecording(true);
-    }
-    // Ignore any queued conversational PCM; the safety warning has priority.
-    assistantAudioActive_ = false;
-    warningUntilMs_ = nowMs + config::kWarningDisplayMs;
-    display_.show(Emotion::Warning, "Vehicle stopped");
-    audio_.playWarningTone();
-    sendEvent("safety.obstacle");
-    return;
-  }
-  if (event == UnoEvent::VoiceRequest) {
-    startRecording(nowMs);
-  }
-}
-
-void RoverApp::startRecording(uint32_t nowMs) {
+void AudioAssistantApp::startRecording(uint32_t nowMs) {
   if (!webSocketConnected_ || recording_ || assistantAudioActive_) {
     display_.show(Emotion::Error, "Voice unavailable");
     return;
@@ -157,7 +163,7 @@ void RoverApp::startRecording(uint32_t nowMs) {
   webSocket_.sendTXT(json);
 }
 
-void RoverApp::updateRecording(uint32_t nowMs) {
+void AudioAssistantApp::updateRecording(uint32_t nowMs) {
   if (!recording_) {
     return;
   }
@@ -182,7 +188,7 @@ void RoverApp::updateRecording(uint32_t nowMs) {
   }
 }
 
-void RoverApp::finishRecording(bool cancelled) {
+void AudioAssistantApp::finishRecording(bool cancelled) {
   if (!recording_) {
     return;
   }
@@ -193,7 +199,7 @@ void RoverApp::finishRecording(bool cancelled) {
   }
 }
 
-void RoverApp::handleTextMessage(const uint8_t* payload, size_t length) {
+void AudioAssistantApp::handleTextMessage(const uint8_t* payload, size_t length) {
   StaticJsonDocument<1024> doc;
   const DeserializationError error = deserializeJson(doc, payload, length);
   if (error) {
@@ -207,53 +213,28 @@ void RoverApp::handleTextMessage(const uint8_t* payload, size_t length) {
     display_.show(Emotion::Speaking);
   } else if (strcmp(type, "assistant.audio.end") == 0) {
     assistantAudioActive_ = false;
-    if (warningUntilMs_ == 0) {
-      display_.show(Emotion::Idle);
-    }
+    display_.show(Emotion::Idle);
   } else if (strcmp(type, "emotion") == 0) {
     const char* state = doc["state"] | "idle";
     if (strcmp(state, "thinking") == 0) display_.show(Emotion::Thinking);
     else if (strcmp(state, "listening") == 0) display_.show(Emotion::Listening);
     else if (strcmp(state, "speaking") == 0) display_.show(Emotion::Speaking);
-    else if (strcmp(state, "warning") == 0) display_.show(Emotion::Warning);
     else if (strcmp(state, "error") == 0) display_.show(Emotion::Error);
     else display_.show(Emotion::Idle);
-  } else if (strcmp(type, "home.command") == 0 && !homeCommandPending_) {
-    pendingHomeCommand_.requestId = doc["request_id"].as<String>();
-    pendingHomeCommand_.device = doc["device"].as<String>();
-    pendingHomeCommand_.state = doc["state"].as<String>();
-    homeCommandPending_ = true;
+  } else if (strcmp(type, "assistant.text") == 0) {
+    Serial.printf("AI: %s\n", doc["text"] | "");
+  } else if (strcmp(type, "transcript") == 0) {
+    Serial.printf("Heard: %s\n", doc["text"] | "");
   } else if (strcmp(type, "error") == 0) {
     display_.show(Emotion::Error, doc["message"] | "Server error");
   }
 }
 
-void RoverApp::executePendingHomeCommand() {
-  if (!homeCommandPending_) {
-    return;
-  }
-  homeCommandPending_ = false;
-  const HomeResult result = home_.execute(pendingHomeCommand_);
-
-  StaticJsonDocument<512> doc;
-  doc["version"] = 1;
-  doc["type"] = "home.result";
-  doc["request_id"] = pendingHomeCommand_.requestId;
-  doc["ok"] = result.ok;
-  doc["status_code"] = result.statusCode;
-  doc["detail"] = result.response;
-  String json;
-  serializeJson(doc, json);
-  if (webSocketConnected_) {
-    webSocket_.sendTXT(json);
-  }
-}
-
-void RoverApp::sendHello() {
+void AudioAssistantApp::sendHello() {
   StaticJsonDocument<384> doc;
   doc["version"] = 1;
   doc["type"] = "hello";
-  doc["device_id"] = ROVER_DEVICE_ID;
+  doc["device_id"] = AUDIO_DEVICE_ID;
   doc["firmware"] = "1.0.0";
   doc["ip"] = WiFi.localIP().toString();
   String json;
@@ -261,7 +242,7 @@ void RoverApp::sendHello() {
   webSocket_.sendTXT(json);
 }
 
-void RoverApp::sendEvent(const char* type, const char* sessionId) {
+void AudioAssistantApp::sendEvent(const char* type, const char* sessionId) {
   if (!webSocketConnected_) {
     return;
   }
@@ -276,9 +257,9 @@ void RoverApp::sendEvent(const char* type, const char* sessionId) {
   webSocket_.sendTXT(json);
 }
 
-String RoverApp::makeRequestId() {
+String AudioAssistantApp::makeRequestId() {
   char id[48];
-  snprintf(id, sizeof(id), "%s-%08lx-%lu", ROVER_DEVICE_ID,
+  snprintf(id, sizeof(id), "%s-%08lx-%lu", AUDIO_DEVICE_ID,
            static_cast<unsigned long>(millis()),
            static_cast<unsigned long>(sessionCounter_ + 1));
   sessionCounter_++;

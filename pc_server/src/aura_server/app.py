@@ -19,7 +19,7 @@ from .models import Decision
 logger = logging.getLogger(__name__)
 
 
-class RoverConnection:
+class AudioDeviceConnection:
     def __init__(self, websocket: WebSocket, device_id: str) -> None:
         self.websocket = websocket
         self.device_id = device_id
@@ -64,18 +64,16 @@ class RoverConnection:
         task.add_done_callback(self.turn_tasks.discard)
         return task
 
-    def cancel_turns(self, *, keep_current: bool = False) -> None:
-        current = asyncio.current_task() if keep_current else None
+    def cancel_turns(self) -> None:
         for task in tuple(self.turn_tasks):
-            if task is not current:
-                task.cancel()
+            task.cancel()
 
 
 @dataclass(slots=True)
 class AppState:
     settings: Settings
     conversations: ConversationStore = field(default_factory=ConversationStore)
-    connections: dict[str, RoverConnection] = field(default_factory=dict)
+    connections: dict[str, AudioDeviceConnection] = field(default_factory=dict)
     _ai: AuraAI | None = None
 
     @property
@@ -86,8 +84,9 @@ class AppState:
         return self._ai
 
 
-async def process_turn(state: AppState, connection: RoverConnection,
-                       capture: AudioCapture) -> None:
+async def process_turn(
+    state: AppState, connection: AudioDeviceConnection, capture: AudioCapture
+) -> None:
     session_id = capture.session_id
     try:
         await connection.send_json(
@@ -107,15 +106,6 @@ async def process_turn(state: AppState, connection: RoverConnection,
         )
         state.conversations.add(connection.device_id, transcript, decision.reply)
 
-        if decision.action is not None:
-            await connection.send_json(
-                {
-                    "type": "home.command",
-                    "request_id": session_id,
-                    "device": decision.action.device.value,
-                    "state": decision.action.state.value,
-                }
-            )
         await connection.send_json(
             {
                 "type": "assistant.text",
@@ -129,7 +119,7 @@ async def process_turn(state: AppState, connection: RoverConnection,
     except asyncio.CancelledError:
         logger.info("Turn %s cancelled for %s", session_id, connection.device_id)
         raise
-    except Exception as exc:  # The rover receives a safe, bounded error message.
+    except Exception as exc:
         logger.exception("Voice turn failed for %s", connection.device_id)
         with suppress(Exception):
             await connection.send_json(
@@ -142,20 +132,8 @@ async def process_turn(state: AppState, connection: RoverConnection,
             )
 
 
-async def process_obstacle(state: AppState, connection: RoverConnection) -> None:
-    connection.cancel_turns(keep_current=True)
-    session_id = f"warning-{connection.device_id}"
-    try:
-        await connection.send_json({"type": "emotion", "state": "warning"})
-        pcm = await asyncio.to_thread(state.ai.warning_pcm)
-        await connection.send_pcm(pcm, session_id)
-    except Exception:
-        # The Uno stop, OLED warning, and ESP32 fallback tone remain independent.
-        logger.exception("Could not deliver spoken obstacle warning")
-
-
 def create_app(settings: Settings | None = None) -> FastAPI:
-    app = FastAPI(title="AURA Rover Server", version="1.0.0")
+    app = FastAPI(title="AURA Wireless AI Audio Server", version="1.0.0")
     state = AppState(settings or Settings())
     app.state.aura = state
 
@@ -163,31 +141,31 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     async def health() -> dict[str, Any]:
         return {
             "ok": True,
-            "service": "aura-rover-server",
-            "connected_rovers": sorted(state.connections),
+            "service": "aura-audio-server",
+            "connected_devices": sorted(state.connections),
             "openai_key_configured": bool(state.settings.openai_api_key),
             "cognee_enabled": state.settings.enable_cognee,
         }
 
-    @app.websocket("/ws/rover/{device_id}")
-    async def rover_socket(websocket: WebSocket, device_id: str) -> None:
+    @app.websocket("/ws/audio/{device_id}")
+    async def audio_socket(websocket: WebSocket, device_id: str) -> None:
         authorization = websocket.headers.get("authorization", "")
         supplied_token = (
             authorization.removeprefix("Bearer ")
             if authorization.startswith("Bearer ")
             else websocket.query_params.get("token", "")  # v0 compatibility
         )
-        if not secrets.compare_digest(supplied_token, state.settings.rover_token):
+        if not secrets.compare_digest(supplied_token, state.settings.device_token):
             await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
             return
 
         await websocket.accept()
-        connection = RoverConnection(websocket, device_id)
+        connection = AudioDeviceConnection(websocket, device_id)
         old = state.connections.get(device_id)
         if old is not None:
             await old.websocket.close(code=status.WS_1001_GOING_AWAY)
         state.connections[device_id] = connection
-        logger.info("Rover connected: %s", device_id)
+        logger.info("Audio device connected: %s", device_id)
 
         try:
             while True:
@@ -224,14 +202,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                     connection.start_task(process_turn(state, connection, capture))
                 elif message_type == "audio.cancel":
                     connection.capture = None
-                elif message_type == "safety.obstacle":
-                    connection.start_task(process_obstacle(state, connection))
-                elif message_type == "home.result":
-                    logger.info("Home result from %s: %s", device_id, message)
                 elif message_type in {"hello", "pong"}:
-                    logger.debug("Rover event from %s: %s", device_id, message_type)
+                    logger.debug("Audio device event from %s: %s", device_id, message_type)
                 else:
-                    logger.warning("Unknown rover message: %s", message_type)
+                    logger.warning("Unknown audio device message: %s", message_type)
         except (WebSocketDisconnect, RuntimeError):
             pass
         except (AudioProtocolError, json.JSONDecodeError) as exc:
@@ -245,7 +219,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             connection.cancel_turns()
             if state.connections.get(device_id) is connection:
                 state.connections.pop(device_id, None)
-            logger.info("Rover disconnected: %s", device_id)
+            logger.info("Audio device disconnected: %s", device_id)
 
     return app
 

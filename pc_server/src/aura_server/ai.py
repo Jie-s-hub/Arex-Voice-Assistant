@@ -1,19 +1,17 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import io
 import json
-import threading
 from collections.abc import Sequence
 
 from openai import OpenAI
 
 from .config import Settings
 from .cognee import CogneeMemory
-from .intent import classify_known_home_command
 from .models import DECISION_JSON_SCHEMA, Decision
 
 
-SYSTEM_INSTRUCTIONS = """You are AURA, a warm and concise voice assistant on a high-school smart-living rover.
+SYSTEM_INSTRUCTIONS = """You are AURA, a warm and concise voice assistant running through an ESP32 wireless microphone and speaker.
 Success criteria:
 - The user name is Ong You Jie, he is a 17-year-old high-school student.
 - Reply in at most two short spoken sentences.
@@ -21,11 +19,7 @@ Success criteria:
 - For research answers, summarize clearly for speech; include source names only when they fit naturally.
 - Use the Cognee long-term memory section when it is relevant.
 - Never invent memories. If a fact is not in the current transcript, recent conversation, or Cognee memory, say you do not remember it.
-- Classify supported home actions only for bedroom_light, fan, or all-off.
-- Never invent a device or action.
-- If the request is ambiguous, ask a brief question and return action as null.
-- For ordinary conversation, return intent conversation and action null.
-- Do not claim an action succeeded; the rover confirms it separately.
+- Return intent conversation for every reply.
 """
 
 
@@ -36,8 +30,6 @@ class AuraAI:
         self.memory = (
             CogneeMemory(settings.cognee_memory_path) if settings.enable_cognee else None
         )
-        self._warning_pcm: bytes | None = None
-        self._warning_lock = threading.Lock()
 
     def response_tools(self) -> list[dict[str, str]] | None:
         if not self.settings.enable_web_search:
@@ -56,7 +48,7 @@ class AuraAI:
             model=self.settings.transcribe_model,
             file=audio,
             response_format="text",
-            prompt="AURA Rover commands may mention a bedroom light or a fan.",
+            prompt="Short voice notes and questions captured by an ESP32 wireless microphone.",
         )
         text = result if isinstance(result, str) else result.text
         return text.strip()
@@ -69,10 +61,6 @@ class AuraAI:
             if memory_decision is not None:
                 return memory_decision
 
-        known = classify_known_home_command(transcript)
-        if known is not None:
-            return known
-
         context = "\n".join(
             f"User: {user}\nAURA: {assistant}" for user, assistant in history[-4:]
         )
@@ -82,7 +70,7 @@ class AuraAI:
             else "(memory disabled)"
         )
         dynamic_input = (
-            f"Cognee long-term memory for this rover:\n{memory_context}\n\n"
+            f"Cognee long-term memory for this audio device:\n{memory_context}\n\n"
             f"Recent conversation:\n{context or '(none)'}\n\n"
             f"Current user transcript: {transcript}"
         )
@@ -110,16 +98,7 @@ class AuraAI:
             model=self.settings.tts_model,
             voice=self.settings.tts_voice,
             input=text,
-            instructions="Speak warmly, clearly, and briefly as a friendly mobile robot.",
+            instructions="Speak warmly, clearly, and briefly as a friendly AI audio assistant.",
             response_format="pcm",
         ) as response:
             return response.read()
-
-    def warning_pcm(self) -> bytes:
-        with self._warning_lock:
-            if self._warning_pcm is None:
-                self._warning_pcm = self.synthesize(
-                    "Obstacle detected. Vehicle stopped."
-                )
-            return self._warning_pcm
-

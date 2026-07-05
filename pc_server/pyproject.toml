@@ -3,9 +3,9 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "aura-rover-server"
+name = "aura-audio-server"
 version = "1.0.0"
-description = "FastAPI voice and AI bridge for the AURA Rover"
+description = "FastAPI voice and AI bridge for an ESP32 wireless mic and speaker"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",

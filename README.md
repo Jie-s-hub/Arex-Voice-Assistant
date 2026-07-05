@@ -1,63 +1,51 @@
-﻿# AURA Rover
+# AURA Wireless AI Mic + Speaker
 
-**Intelligent Voice-Controlled Mobile Assistant for Smart Living**  
-ACCCIM STI Competition 2026
+ESP32 wireless microphone and speaker for talking with an AI assistant over Wi-Fi.
 
-AURA adds voice interaction, an OLED emotion display, obstacle safety, Wi-Fi AI conversation, and smart-home control to an already-working PS2 mecanum rover. It deliberately does **not** replace or redesign the existing mecanum drive code.
+AURA captures speech from an INMP441 I2S microphone, streams raw PCM to a FastAPI PC server over WebSocket, uses OpenAI for transcription, conversation, optional web search, memory, and text-to-speech, then streams 24 kHz PCM audio back to a MAX98357A speaker amplifier.
 
-## What is implemented
+## What is included
 
-- A reusable Arduino Uno safety module for HC-SR04 sensing, immediate motor-stop callbacks, and a one-wire event link.
-- A directly uploadable integration of the supplied `mecanum_car_v2.3.ino`, with its original drive behavior preserved.
-- Rover ESP32 firmware for two independent I2S buses (microphone and speaker), WebSocket audio streaming, OLED faces, safety warnings, and smart-home commands.
-- Smart-home ESP32 firmware with authenticated, idempotent HTTP/JSON relay control.
-- A FastAPI PC server using the OpenAI Audio and Responses APIs, hosted web search for online research, local Cognee long-term memory, deterministic safety-critical home-command recognition, structured AI output, and PCM speech streaming.
-- JSON Schemas, wiring tables, architecture notes, bring-up roadmap, risk register, and tests.
+- Standalone ESP32 firmware for Wi-Fi, I2S microphone capture, I2S speaker playback, OLED status faces, and button-triggered voice turns.
+- A FastAPI PC server that handles WebSocket audio, OpenAI transcription, Responses API conversation, optional hosted web search, optional local Cognee-style memory, and PCM speech output.
+- JSON schemas for the audio start message and AI decision payload.
+- Hardware wiring, setup, and protocol notes for the AI mic/speaker device.
 
 ## System at a glance
 
 ```mermaid
 flowchart LR
-    PS2["PS2 controller"] --> UNO["Arduino Uno<br/>existing mecanum + safety"]
-    SONAR["HC-SR04"] --> UNO
-    UNO -->|"D7, divided to 3.3 V<br/>short double pulse / long pulse"| ROVER["Rover ESP32"]
-    MIC["INMP441"] --> ROVER
-    ROVER --> OLED["1.3-inch OLED"]
-    ROVER --> AMP["MAX98357A + speaker"]
-    ROVER <-->|"WebSocket: JSON + PCM"| PC["FastAPI PC server"]
+    BUTTON["Voice button<br/>BOOT / GPIO0"] --> ESP32["ESP32 AI audio device"]
+    MIC["INMP441 I2S mic"] --> ESP32
+    ESP32 --> OLED["I2C OLED"]
+    ESP32 --> AMP["MAX98357A + speaker"]
+    ESP32 <-->|"WebSocket: JSON + PCM"| PC["FastAPI PC server"]
     PC <-->|"STT / Responses / TTS"| OPENAI["OpenAI API"]
-    ROVER -->|"Authenticated HTTP/JSON"| HOME["Smart-home ESP32"]
-    HOME --> RELAYS["Bedroom light / fan relays"]
 ```
 
-The Uno is the safety authority. An obstacle stops the motors even if Wi-Fi, the PC, or the AI is unavailable.
+The OpenAI API key stays on the PC. The ESP32 only knows the Wi-Fi credentials, PC LAN address, device id, and shared device token.
 
 ## Repository map
 
 ```text
-AURA-Rover/
-|-- docs/                         Architecture, wiring, protocols, plans
+project-root/
+|-- docs/
+|   |-- setup.md
+|   |-- wiring.md
+|   \-- protocol.md
 |-- firmware/
-|   |-- uno_integration/          Drop-in module for the existing rover sketch
-|   |-- rover_esp32/              Voice/OLED/network firmware
-|   \-- smart_home_esp32/         Relay-node firmware
-|-- pc_server/                    Python/FastAPI/OpenAI application
-\-- protocol/schemas/             Machine-readable JSON Schemas
+|   \-- ai_audio_esp32/
+|-- pc_server/
+\-- protocol/
+    \-- schemas/
 ```
 
 ## Quick start
 
-For a complete beginner-friendly procedure, follow [STEP_BY_STEP_GUIDE.md](docs/STEP_BY_STEP_GUIDE.md).
-
-1. Read [wiring.md](docs/wiring.md), especially the power and 5 V-to-3.3 V divider notes.
-   For the supplied mecanum sketch, use the corrected pin plan in [YOUR_MECANUM_CODE_INTEGRATION.md](docs/YOUR_MECANUM_CODE_INTEGRATION.md).
-   To test only the rover ESP32 and its peripherals first, use [ESP32_ONLY_TEST.md](docs/ESP32_ONLY_TEST.md).
-   To let AURA answer current online questions, enable [ONLINE_RESEARCH.md](docs/ONLINE_RESEARCH.md).
-   To let AURA remember explicit facts, enable [COGNEE_MEMORY.md](docs/COGNEE_MEMORY.md).
-2. Add `firmware/uno_integration/src/AuraSafety.*` to the existing Uno project and follow the integration example. Map the stop callback to the existing motor-stop function and one unused PS2 button to `voicePressed`.
-3. Copy each ESP32 `include/secrets.example.h` to `include/secrets.h`, then set Wi-Fi, server, node, and token values.
-4. Install PlatformIO, build, and upload each ESP32 project from its own directory.
-5. On the PC:
+1. Wire the ESP32, INMP441, MAX98357A, OLED, and voice button using [docs/wiring.md](docs/wiring.md).
+2. Copy `firmware/ai_audio_esp32/include/secrets.example.h` to `firmware/ai_audio_esp32/include/secrets.h`.
+3. Set `WIFI_SSID`, `WIFI_PASSWORD`, `PC_SERVER_HOST`, `AUDIO_DEVICE_ID`, and `AUDIO_DEVICE_TOKEN`.
+4. On the PC:
 
    ```powershell
    cd pc_server
@@ -65,25 +53,34 @@ For a complete beginner-friendly procedure, follow [STEP_BY_STEP_GUIDE.md](docs/
    .\.venv\Scripts\Activate.ps1
    pip install -e ".[dev]"
    Copy-Item .env.example .env
-   # Edit .env and add OPENAI_API_KEY plus the same ROVER_TOKEN.
+   ```
+
+5. In `pc_server/.env`, set `OPENAI_API_KEY` and `AURA_DEVICE_TOKEN` to the same token used by `AUDIO_DEVICE_TOKEN`.
+6. Start the server:
+
+   ```powershell
    aura-server
    ```
 
-6. Open `http://<PC-IP>:8000/health`, power the rover, and use the serial logs to confirm connection.
+7. Build and upload the ESP32 firmware:
 
-Detailed staged bring-up is in [roadmap.md](docs/roadmap.md). Do not test with the wheels touching the floor until the safety-stop test passes.
+   ```powershell
+   pio run -d firmware\ai_audio_esp32
+   pio run -d firmware\ai_audio_esp32 --target upload
+   ```
+
+8. Open `http://<PC-IP>:8000/health`, power the ESP32, then press the voice button to talk.
 
 ## Default OpenAI pipeline
 
 - Speech-to-text: `gpt-4o-mini-transcribe`
-- Conversation and structured intent: `gpt-5.5`, low-latency reasoning setting
-- Online research: Responses API hosted `web_search` tool, enabled by `AURA_ENABLE_WEB_SEARCH=true`
-- Long-term memory: local Cognee JSON store, enabled by `AURA_ENABLE_COGNEE=true`
+- Conversation: `gpt-5.5`
+- Online research: Responses API hosted `web_search`, enabled by `AURA_ENABLE_WEB_SEARCH=true`
+- Long-term memory: local JSON store, enabled by `AURA_ENABLE_COGNEE=true`
 - Text-to-speech: `gpt-4o-mini-tts`, raw 24 kHz mono PCM
 
-All model IDs are environment variables. The PC, not either microcontroller, holds the OpenAI API key.
+All model IDs are environment variables in `pc_server/src/aura_server/config.py`.
 
-## Safety boundary
+## Notes
 
-This is a competition prototype, not a certified safety system. Always provide a physical battery disconnect, test with the rover raised, use relay modules with proper isolation and enclosure, and have a qualified adult supervise any mains-voltage work.
-
+Keep speaker volume low while testing, power the amplifier from a stable supply, and keep microphone wiring short and away from the speaker amp output. This is a prototype audio assistant, not a certified consumer audio product.

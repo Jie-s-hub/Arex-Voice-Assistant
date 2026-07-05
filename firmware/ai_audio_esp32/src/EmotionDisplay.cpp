@@ -13,15 +13,13 @@ void EmotionDisplay::begin() {
   Wire.begin(config::kOledSdaPin, config::kOledSclPin);
   oled_.setI2CAddress(config::kOledAddress << 1);  // U8g2 uses 8-bit address.
   oled_.begin();
-  show(Emotion::Idle, "AURA ready");
+  show(Emotion::Idle, "Audio ready");
 }
 
 void EmotionDisplay::show(Emotion emotion, const char* detail) {
   current_ = emotion;
   oled_.clearBuffer();
 
-  // ASCII faces render reliably on both SH1106 and SSD1306-class displays.
-  // Required states: (^_^), (O_O), (-_-), (^o^), (>_<), and (X_X).
   oled_.setFont(u8g2_font_courB18_tf);
   const char* face = faceFor(emotion);
   const int16_t faceWidth = oled_.getStrWidth(face);
@@ -41,7 +39,6 @@ const char* EmotionDisplay::faceFor(Emotion emotion) const {
     case Emotion::Listening: return "(O_O)";
     case Emotion::Thinking: return "(-_-)";
     case Emotion::Speaking: return "(^o^)";
-    case Emotion::Warning: return "(>_<)";
     case Emotion::Error: return "(X_X)";
   }
   return "(X_X)";
@@ -53,7 +50,6 @@ const char* EmotionDisplay::labelFor(Emotion emotion) const {
     case Emotion::Listening: return "Listening";
     case Emotion::Thinking: return "Thinking";
     case Emotion::Speaking: return "Speaking";
-    case Emotion::Warning: return "Obstacle!";
     case Emotion::Error: return "Error";
   }
   return "Error";

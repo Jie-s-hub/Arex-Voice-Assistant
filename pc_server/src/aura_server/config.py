@@ -20,7 +20,7 @@ class Settings:
     chat_model: str = os.getenv("OPENAI_CHAT_MODEL", "gpt-5.5")
     tts_model: str = os.getenv("OPENAI_TTS_MODEL", "gpt-4o-mini-tts")
     tts_voice: str = os.getenv("OPENAI_TTS_VOICE", "coral")
-    rover_token: str = os.getenv("ROVER_TOKEN", "abcdefghijklmnop")
+    device_token: str = os.getenv("AURA_DEVICE_TOKEN", "abcdefghijklmnop")
     host: str = os.getenv("AURA_HOST", "0.0.0.0")
     port: int = int(os.getenv("AURA_PORT", "8000"))
     log_level: str = os.getenv("AURA_LOG_LEVEL", "INFO").upper()
@@ -47,8 +47,8 @@ class Settings:
     def validate_runtime(self) -> None:
         if not self.openai_api_key:
             raise RuntimeError("OPENAI_API_KEY is not set")
-        if self.rover_token == "change-me-before-demo":
-            raise RuntimeError("ROVER_TOKEN must be changed before running the server")
+        if self.device_token == "change-me-before-demo":
+            raise RuntimeError("AURA_DEVICE_TOKEN must be changed before running the server")
         if not 1 <= self.max_audio_seconds <= 30:
             raise RuntimeError("AURA_MAX_AUDIO_SECONDS must be between 1 and 30")
         if self.web_search_context_size not in {"low", "medium", "high"}:
