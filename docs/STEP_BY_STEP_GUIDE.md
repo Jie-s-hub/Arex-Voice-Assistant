@@ -429,11 +429,15 @@ AURA_HOST=0.0.0.0
 AURA_PORT=8000
 AURA_LOG_LEVEL=INFO
 AURA_MAX_AUDIO_SECONDS=8
+AURA_ENABLE_WEB_SEARCH=true
+AURA_WEB_SEARCH_CONTEXT_SIZE=low
 ```
 
 `ROVER_TOKEN` must exactly match the rover ESP32 value.
 
 Never place `OPENAI_API_KEY` in Arduino or ESP32 code.
+
+With web search enabled, AURA can answer current-information questions such as recent robotics news or online research prompts. For more detail, read `docs/ONLINE_RESEARCH.md`.
 
 ## 20. Run the PC tests
 

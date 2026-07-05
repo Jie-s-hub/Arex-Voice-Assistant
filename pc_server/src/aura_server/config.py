@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
@@ -10,7 +10,9 @@ load_dotenv()
 
 @dataclass(frozen=True, slots=True)
 class Settings:
-    openai_api_key: str = os.getenv("OPENAI_API_KEY", "sk-REDACTED-OPENAI-KEY")
+    openai_api_key: str = field(
+        default_factory=lambda: os.getenv("OPENAI_API_KEY", "")
+    )
     transcribe_model: str = os.getenv(
         "OPENAI_TRANSCRIBE_MODEL", "gpt-4o-mini-transcribe"
     )
@@ -22,6 +24,13 @@ class Settings:
     port: int = int(os.getenv("AURA_PORT", "8000"))
     log_level: str = os.getenv("AURA_LOG_LEVEL", "INFO").upper()
     max_audio_seconds: int = int(os.getenv("AURA_MAX_AUDIO_SECONDS", "8"))
+    enable_web_search: bool = os.getenv("AURA_ENABLE_WEB_SEARCH", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    web_search_context_size: str = os.getenv("AURA_WEB_SEARCH_CONTEXT_SIZE", "low")
 
     def validate_runtime(self) -> None:
         if not self.openai_api_key:
@@ -30,3 +39,7 @@ class Settings:
             raise RuntimeError("ROVER_TOKEN must be changed before running the server")
         if not 1 <= self.max_audio_seconds <= 30:
             raise RuntimeError("AURA_MAX_AUDIO_SECONDS must be between 1 and 30")
+        if self.web_search_context_size not in {"low", "medium", "high"}:
+            raise RuntimeError(
+                "AURA_WEB_SEARCH_CONTEXT_SIZE must be low, medium, or high"
+            )
