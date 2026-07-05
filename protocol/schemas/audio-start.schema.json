@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aura-rover.local/schemas/audio-start.schema.json",
+  "title": "AURA rover audio start",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "type", "session_id", "format", "sample_rate_hz", "channels"],
+  "properties": {
+    "version": {"const": 1},
+    "type": {"const": "audio.start"},
+    "session_id": {"type": "string", "minLength": 8, "maxLength": 64},
+    "format": {"const": "pcm_s16le"},
+    "sample_rate_hz": {"type": "integer", "minimum": 8000, "maximum": 48000},
+    "channels": {"const": 1}
+  }
+}
+
