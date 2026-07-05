@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -31,6 +32,17 @@ class Settings:
         "on",
     }
     web_search_context_size: str = os.getenv("AURA_WEB_SEARCH_CONTEXT_SIZE", "low")
+    enable_memory: bool = os.getenv("AURA_ENABLE_MEMORY", "true").lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    memory_path: Path = field(
+        default_factory=lambda: Path(
+            os.getenv("AURA_MEMORY_PATH", "data/congee_memory.json")
+        )
+    )
 
     def validate_runtime(self) -> None:
         if not self.openai_api_key:

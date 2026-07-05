@@ -103,7 +103,7 @@ async def process_turn(state: AppState, connection: RoverConnection,
 
         history = state.conversations.history(connection.device_id)
         decision: Decision = await asyncio.to_thread(
-            state.ai.decide, transcript, history
+            state.ai.decide, transcript, history, connection.device_id
         )
         state.conversations.add(connection.device_id, transcript, decision.reply)
 
@@ -166,6 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "service": "aura-rover-server",
             "connected_rovers": sorted(state.connections),
             "openai_key_configured": bool(state.settings.openai_api_key),
+            "memory_enabled": state.settings.enable_memory,
         }
 
     @app.websocket("/ws/rover/{device_id}")
