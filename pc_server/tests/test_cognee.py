@@ -6,35 +6,35 @@ from aura_server.cognee import CogneeMemory
 def test_cognee_remembers_and_recalls_explicit_fact(tmp_path):
     memory = CogneeMemory(tmp_path / "memory.json")
 
-    saved = memory.remember("rover-1", "my favorite color is blue")
+    saved = memory.remember("audio-1", "my favorite color is blue")
 
     assert saved.text == "my favorite color is blue"
-    assert memory.count("rover-1") == 1
-    assert memory.recall("rover-1", "what is my favorite color")[0].text == (
+    assert memory.count("audio-1") == 1
+    assert memory.recall("audio-1", "what is my favorite color")[0].text == (
         "my favorite color is blue"
     )
 
 
-def test_cognee_keeps_rover_memories_separate(tmp_path):
+def test_cognee_keeps_audio_device_memories_separate(tmp_path):
     memory = CogneeMemory(tmp_path / "memory.json")
 
-    memory.remember("rover-1", "my bedroom light is a demo LED")
-    memory.remember("rover-2", "my favorite snack is mango")
+    memory.remember("audio-1", "my display is a demo OLED")
+    memory.remember("audio-2", "my favorite snack is mango")
 
-    assert "demo LED" in memory.format_context("rover-1", "bedroom light")
-    assert "mango" not in memory.format_context("rover-1", "bedroom light")
+    assert "demo OLED" in memory.format_context("audio-1", "display")
+    assert "mango" not in memory.format_context("audio-1", "display")
 
 
 def test_cognee_forgets_matching_memory(tmp_path):
     memory = CogneeMemory(tmp_path / "memory.json")
-    memory.remember("rover-1", "my favorite color is blue")
-    memory.remember("rover-1", "my favorite snack is mango")
+    memory.remember("audio-1", "my favorite color is blue")
+    memory.remember("audio-1", "my favorite snack is mango")
 
-    removed = memory.forget("rover-1", "color blue")
+    removed = memory.forget("audio-1", "color blue")
 
     assert removed == 1
-    assert memory.count("rover-1") == 1
-    assert "mango" in memory.format_context("rover-1", "favorite snack")
+    assert memory.count("audio-1") == 1
+    assert "mango" in memory.format_context("audio-1", "favorite snack")
 
 
 def test_ai_handles_memory_commands_without_openai_call(tmp_path):
@@ -42,12 +42,12 @@ def test_ai_handles_memory_commands_without_openai_call(tmp_path):
         Settings(openai_api_key="sk-test", cognee_memory_path=tmp_path / "memory.json")
     )
 
-    remember = ai.decide("remember that my demo robot name is AURA", (), "rover-1")
-    recall = ai.decide("what do you remember", (), "rover-1")
+    remember = ai.decide("remember that my demo device name is AURA", (), "audio-1")
+    recall = ai.decide("what do you remember", (), "audio-1")
 
     assert remember.intent == "conversation"
     assert "I'll remember" in remember.reply
-    assert "demo robot name is AURA" in recall.reply
+    assert "demo device name is AURA" in recall.reply
 
 
 def test_memory_can_be_disabled(tmp_path):
@@ -64,11 +64,11 @@ def test_memory_can_be_disabled(tmp_path):
 
 def test_memory_clear_command_accepts_sentence_punctuation(tmp_path):
     memory = CogneeMemory(tmp_path / "memory.json")
-    memory.remember("rover-1", "my robot is called AURA")
+    memory.remember("audio-1", "my device is called AURA")
 
-    decision = memory.handle_command("rover-1", "Forget everything.")
+    decision = memory.handle_command("audio-1", "Forget everything.")
 
     assert decision is not None
     assert "cleared" in decision.reply
-    assert memory.count("rover-1") == 0
+    assert memory.count("audio-1") == 0
 

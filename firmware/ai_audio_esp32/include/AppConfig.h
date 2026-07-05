@@ -17,9 +17,10 @@ constexpr uint8_t kOledSdaPin = 21;
 constexpr uint8_t kOledSclPin = 22;
 constexpr uint8_t kOledAddress = 0x3C;
 
-// Uno one-wire input. The Uno's 5 V D7 MUST pass through the divider in
-// docs/wiring.md before reaching this 3.3 V-only pin.
-constexpr uint8_t kAlertPin = 25;
+// Default trigger is the BOOT button on many ESP32 dev boards.
+constexpr uint8_t kVoiceButtonPin = 0;
+constexpr bool kVoiceButtonActiveLow = true;
+constexpr uint32_t kButtonDebounceMs = 35;
 
 // INMP441 on I2S_NUM_0 (receive)
 constexpr uint8_t kMicBclkPin = 26;
@@ -39,6 +40,5 @@ constexpr uint32_t kRecordingMinMs = 900;
 constexpr uint32_t kSilenceToStopMs = 1100;
 constexpr uint16_t kSpeechRmsThreshold = 450;
 constexpr uint32_t kReconnectPeriodMs = 5000;
-constexpr uint32_t kWarningDisplayMs = 5000;
 
 }  // namespace aura::config

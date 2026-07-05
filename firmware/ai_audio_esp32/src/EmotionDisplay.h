@@ -10,7 +10,6 @@ enum class Emotion : uint8_t {
   Listening,
   Thinking,
   Speaking,
-  Warning,
   Error,
 };
 
@@ -30,4 +29,3 @@ class EmotionDisplay {
 };
 
 }  // namespace aura
-

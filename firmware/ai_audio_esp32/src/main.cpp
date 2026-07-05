@@ -1,10 +1,9 @@
 #include <Arduino.h>
 
-#include "RoverApp.h"
+#include "AudioAssistantApp.h"
 
-aura::RoverApp app;
+aura::AudioAssistantApp app;
 
 void setup() { app.begin(); }
 
 void loop() { app.loop(); }
-

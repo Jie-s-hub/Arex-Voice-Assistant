@@ -4,28 +4,21 @@ from pydantic import ValidationError
 from aura_server.models import Decision
 
 
-def test_all_on_is_rejected_even_from_model_output():
+def test_conversation_decision_is_valid():
+    decision = Decision.model_validate(
+        {"intent": "conversation", "reply": "Hello from AURA."}
+    )
+
+    assert decision.intent == "conversation"
+    assert decision.reply == "Hello from AURA."
+
+
+def test_action_fields_are_rejected():
     with pytest.raises(ValidationError):
         Decision.model_validate(
             {
-                "intent": "smart_home",
-                "reply": "Turning everything on.",
-                "action": {"device": "all", "state": "on"},
-            }
-        )
-
-
-def test_extra_action_fields_are_rejected():
-    with pytest.raises(ValidationError):
-        Decision.model_validate(
-            {
-                "intent": "smart_home",
+                "intent": "conversation",
                 "reply": "Okay.",
-                "action": {
-                    "device": "fan",
-                    "state": "on",
-                    "duration": "forever",
-                },
+                "action": {"name": "unsupported_command"},
             }
         )
-
