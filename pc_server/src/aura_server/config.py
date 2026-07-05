@@ -32,15 +32,15 @@ class Settings:
         "on",
     }
     web_search_context_size: str = os.getenv("AURA_WEB_SEARCH_CONTEXT_SIZE", "low")
-    enable_memory: bool = os.getenv("AURA_ENABLE_MEMORY", "true").lower() in {
+    enable_cognee: bool = os.getenv("AURA_ENABLE_COGNEE", "true").lower() in {
         "1",
         "true",
         "yes",
         "on",
     }
-    memory_path: Path = field(
+    cognee_memory_path: Path = field(
         default_factory=lambda: Path(
-            os.getenv("AURA_MEMORY_PATH", "data/congee_memory.json")
+            os.getenv("AURA_COGNEE_MEMORY_PATH", "data/cognee_memory.json")
         )
     )
 

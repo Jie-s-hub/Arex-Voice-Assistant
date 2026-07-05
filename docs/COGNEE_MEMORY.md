@@ -1,6 +1,6 @@
-# Congee Memory
+﻿# Cognee Memory
 
-Congee is AURA's local long-term memory layer.
+Cognee is AURA's local long-term memory layer.
 
 It lets the rover remember safe facts across voice sessions, such as:
 
@@ -12,9 +12,9 @@ It lets the rover remember safe facts across voice sessions, such as:
 
 The memory runs on the PC server only. The Arduino Uno and ESP32 do not store the memory file.
 
-## Why it is called Congee
+## Why it is called Cognee
 
-This project uses a lightweight local memory module named **Congee** because it is simple and easy to digest, like a bowl of congee. It is designed for a high-school robotics demo where reliability matters more than a complex database.
+This project uses a lightweight local memory module named **Cognee**, inspired by the idea of a simple AI memory system. It is designed for a high-school robotics demo where reliability matters more than a complex database.
 
 You can later replace it with a heavier graph/vector memory system if the project grows.
 
@@ -23,7 +23,7 @@ You can later replace it with a heavier graph/vector memory system if the projec
 By default:
 
 ```text
-pc_server/data/congee_memory.json
+pc_server/data/cognee_memory.json
 ```
 
 This file is ignored by GitHub because it may contain personal notes.
@@ -39,8 +39,8 @@ pc_server/.env
 Confirm:
 
 ```dotenv
-AURA_ENABLE_MEMORY=true
-AURA_MEMORY_PATH=data/congee_memory.json
+AURA_ENABLE_COGNEE=true
+AURA_COGNEE_MEMORY_PATH=data/cognee_memory.json
 ```
 
 ## Voice commands
@@ -97,7 +97,7 @@ You can ask:
 What is my favorite color?
 ```
 
-AURA includes the Congee memory in the model prompt, so it can answer:
+AURA includes the Cognee memory in the model prompt, so it can answer:
 
 ```text
 Your favorite color is blue.
@@ -127,7 +127,7 @@ Clear my memory.
 
 ## Safety and privacy
 
-Congee stores only explicit memories. AURA does not silently save every conversation.
+Cognee stores only explicit memories. AURA does not silently save every conversation.
 
 This is intentional for a school competition demo:
 
@@ -163,4 +163,5 @@ For a simple live demo:
 4. Press the voice button again.
 5. Say: "What do you remember?"
 6. AURA should say that your robot is called AURA.
+
 
