@@ -1,4 +1,4 @@
-# AURA Rover — Step-by-Step Build Guide
+﻿# AURA Rover 鈥?Step-by-Step Build Guide
 
 This guide explains how to turn the existing PS2-controlled mecanum rover into AURA without redesigning its drive system.
 
@@ -23,7 +23,7 @@ You also need:
 - The Arduino Uno USB cable
 - A multimeter
 - Breadboard and jumper wires
-- 10 kΩ and 20 kΩ resistors
+- 10 k惟 and 20 k惟 resistors
 - A regulated 5 V buck converter rated for at least 2 A
 - A safe low-voltage lamp and fan for relay testing
 
@@ -98,7 +98,7 @@ The Uno has only one safe pin left, so use NewPing's one-pin mode:
 | VCC | Uno 5V |
 | GND | Uno GND |
 | TRIG | Uno D11 directly |
-| ECHO | Uno D11 through a 2.2 kΩ resistor |
+| ECHO | Uno D11 through a 2.2 k惟 resistor |
 
 Do not connect ECHO directly to the shared D11 node without the resistor. Keep the sensor facing forward and away from the spinning wheels.
 
@@ -109,9 +109,9 @@ Never connect the Uno's 5 V D7 output directly to an ESP32 pin.
 Build this divider:
 
 ```text
-Uno D7 -------- 10 kΩ --------+-------- ESP32 GPIO25
+Uno D7 -------- 10 k惟 --------+-------- ESP32 GPIO25
                               |
-                            20 kΩ
+                            20 k惟
                               |
 Shared GND -------------------+
 ```
@@ -165,7 +165,7 @@ Do not place the rover on the floor until this test passes consistently.
 Use the rover battery only through a regulated buck converter:
 
 ```text
-7.4 V battery → fuse/switch → 5 V buck converter
+7.4 V battery 鈫?fuse/switch 鈫?5 V buck converter
 ```
 
 Connect the regulated 5 V output to:
@@ -191,7 +191,7 @@ Connect all logic grounds at a common ground point.
 | SDA | GPIO21 |
 | SCL | GPIO22 |
 
-The firmware expects address `0x3C` and an SH1106 128×64 display.
+The firmware expects address `0x3C` and an SH1106 128脳64 display.
 
 If the screen stays blank:
 
@@ -223,7 +223,7 @@ Keep microphone wires short and away from the motors and L298N wiring.
 | LRC | GPIO13 |
 | DIN | GPIO32 |
 | SPK+ | Speaker + |
-| SPK− | Speaker − |
+| SPK鈭?| Speaker 鈭?|
 
 Important: neither speaker wire connects to ground. The MAX98357A uses a bridged speaker output.
 
@@ -431,8 +431,8 @@ AURA_LOG_LEVEL=INFO
 AURA_MAX_AUDIO_SECONDS=8
 AURA_ENABLE_WEB_SEARCH=true
 AURA_WEB_SEARCH_CONTEXT_SIZE=low
-AURA_ENABLE_MEMORY=true
-AURA_MEMORY_PATH=data/congee_memory.json
+AURA_ENABLE_COGNEE=true
+AURA_COGNEE_MEMORY_PATH=data/cognee_memory.json
 ```
 
 `ROVER_TOKEN` must exactly match the rover ESP32 value.
@@ -441,7 +441,7 @@ Never place `OPENAI_API_KEY` in Arduino or ESP32 code.
 
 With web search enabled, AURA can answer current-information questions such as recent robotics news or online research prompts. For more detail, read `docs/ONLINE_RESEARCH.md`.
 
-With Congee memory enabled, AURA can remember explicit facts you ask it to save. For more detail, read `docs/CONGEE_MEMORY.md`.
+With Cognee memory enabled, AURA can remember explicit facts you ask it to save. For more detail, read `docs/COGNEE_MEMORY.md`.
 
 ## 20. Run the PC tests
 
@@ -518,8 +518,7 @@ Keep the rover's wheels raised.
 
 1. Press the selected PS2 voice button once.
 2. Confirm the OLED displays `(O_O)`.
-3. Say: “Turn on bedroom light.”
-4. Stop speaking.
+3. Say: 鈥淭urn on bedroom light.鈥?4. Stop speaking.
 5. Confirm the OLED changes to `(-_-)`.
 6. Confirm the correct relay turns on.
 7. Confirm AURA speaks its response while showing `(^o^)`.
@@ -535,7 +534,7 @@ Test every required command:
 
 Also ask a normal question. A normal conversation must not activate a relay.
 
-Test Congee memory:
+Test Cognee memory:
 
 1. Say: "Remember that my robot is called AURA."
 2. Wait for AURA to confirm the memory was saved.
@@ -636,3 +635,4 @@ For deeper technical details, also read:
 - `docs/wiring.md`
 - `docs/protocols.md`
 - `docs/risk-and-testing.md`
+

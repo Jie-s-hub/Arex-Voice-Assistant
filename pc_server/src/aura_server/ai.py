@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import io
 import json
@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from openai import OpenAI
 
 from .config import Settings
-from .congee import CongeeMemory
+from .cognee import CogneeMemory
 from .intent import classify_known_home_command
 from .models import DECISION_JSON_SCHEMA, Decision
 
@@ -19,8 +19,8 @@ Success criteria:
 - Reply in at most two short spoken sentences.
 - When the user asks for recent facts, online information, news, prices, schedules, research, or anything likely to change, use web search before answering.
 - For research answers, summarize clearly for speech; include source names only when they fit naturally.
-- Use the Congee long-term memory section when it is relevant.
-- Never invent memories. If a fact is not in the current transcript, recent conversation, or Congee memory, say you do not remember it.
+- Use the Cognee long-term memory section when it is relevant.
+- Never invent memories. If a fact is not in the current transcript, recent conversation, or Cognee memory, say you do not remember it.
 - Classify supported home actions only for bedroom_light, fan, or all-off.
 - Never invent a device or action.
 - If the request is ambiguous, ask a brief question and return action as null.
@@ -34,7 +34,7 @@ class AuraAI:
         self.settings = settings
         self.client = OpenAI(api_key=settings.openai_api_key)
         self.memory = (
-            CongeeMemory(settings.memory_path) if settings.enable_memory else None
+            CogneeMemory(settings.cognee_memory_path) if settings.enable_cognee else None
         )
         self._warning_pcm: bytes | None = None
         self._warning_lock = threading.Lock()
@@ -82,7 +82,7 @@ class AuraAI:
             else "(memory disabled)"
         )
         dynamic_input = (
-            f"Congee long-term memory for this rover:\n{memory_context}\n\n"
+            f"Cognee long-term memory for this rover:\n{memory_context}\n\n"
             f"Recent conversation:\n{context or '(none)'}\n\n"
             f"Current user transcript: {transcript}"
         )
@@ -122,3 +122,4 @@ class AuraAI:
                     "Obstacle detected. Vehicle stopped."
                 )
             return self._warning_pcm
+

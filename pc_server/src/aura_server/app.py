@@ -166,7 +166,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "service": "aura-rover-server",
             "connected_rovers": sorted(state.connections),
             "openai_key_configured": bool(state.settings.openai_api_key),
-            "memory_enabled": state.settings.enable_memory,
+            "cognee_enabled": state.settings.enable_cognee,
         }
 
     @app.websocket("/ws/rover/{device_id}")

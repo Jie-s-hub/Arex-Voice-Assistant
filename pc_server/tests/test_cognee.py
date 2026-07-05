@@ -1,10 +1,10 @@
-from aura_server.ai import AuraAI
+﻿from aura_server.ai import AuraAI
 from aura_server.config import Settings
-from aura_server.congee import CongeeMemory
+from aura_server.cognee import CogneeMemory
 
 
-def test_congee_remembers_and_recalls_explicit_fact(tmp_path):
-    memory = CongeeMemory(tmp_path / "memory.json")
+def test_cognee_remembers_and_recalls_explicit_fact(tmp_path):
+    memory = CogneeMemory(tmp_path / "memory.json")
 
     saved = memory.remember("rover-1", "my favorite color is blue")
 
@@ -15,8 +15,8 @@ def test_congee_remembers_and_recalls_explicit_fact(tmp_path):
     )
 
 
-def test_congee_keeps_rover_memories_separate(tmp_path):
-    memory = CongeeMemory(tmp_path / "memory.json")
+def test_cognee_keeps_rover_memories_separate(tmp_path):
+    memory = CogneeMemory(tmp_path / "memory.json")
 
     memory.remember("rover-1", "my bedroom light is a demo LED")
     memory.remember("rover-2", "my favorite snack is mango")
@@ -25,8 +25,8 @@ def test_congee_keeps_rover_memories_separate(tmp_path):
     assert "mango" not in memory.format_context("rover-1", "bedroom light")
 
 
-def test_congee_forgets_matching_memory(tmp_path):
-    memory = CongeeMemory(tmp_path / "memory.json")
+def test_cognee_forgets_matching_memory(tmp_path):
+    memory = CogneeMemory(tmp_path / "memory.json")
     memory.remember("rover-1", "my favorite color is blue")
     memory.remember("rover-1", "my favorite snack is mango")
 
@@ -39,7 +39,7 @@ def test_congee_forgets_matching_memory(tmp_path):
 
 def test_ai_handles_memory_commands_without_openai_call(tmp_path):
     ai = AuraAI(
-        Settings(openai_api_key="sk-test", memory_path=tmp_path / "memory.json")
+        Settings(openai_api_key="sk-test", cognee_memory_path=tmp_path / "memory.json")
     )
 
     remember = ai.decide("remember that my demo robot name is AURA", (), "rover-1")
@@ -54,8 +54,8 @@ def test_memory_can_be_disabled(tmp_path):
     ai = AuraAI(
         Settings(
             openai_api_key="sk-test",
-            enable_memory=False,
-            memory_path=tmp_path / "memory.json",
+            enable_cognee=False,
+            cognee_memory_path=tmp_path / "memory.json",
         )
     )
 
@@ -63,7 +63,7 @@ def test_memory_can_be_disabled(tmp_path):
 
 
 def test_memory_clear_command_accepts_sentence_punctuation(tmp_path):
-    memory = CongeeMemory(tmp_path / "memory.json")
+    memory = CogneeMemory(tmp_path / "memory.json")
     memory.remember("rover-1", "my robot is called AURA")
 
     decision = memory.handle_command("rover-1", "Forget everything.")
@@ -71,3 +71,4 @@ def test_memory_clear_command_accepts_sentence_punctuation(tmp_path):
     assert decision is not None
     assert "cleared" in decision.reply
     assert memory.count("rover-1") == 0
+

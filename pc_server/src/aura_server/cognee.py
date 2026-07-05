@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import re
@@ -44,10 +44,10 @@ class Memory:
         }
 
 
-class CongeeMemory:
+class CogneeMemory:
     """Small local long-term memory store for the AURA rover.
 
-    Congee intentionally stores only explicit memories: the user has to say
+    Cognee intentionally stores only explicit memories: the user has to say
     "remember that ...". This avoids silently collecting personal information
     during a school demonstration.
     """
@@ -82,7 +82,7 @@ class CongeeMemory:
             memory = self.remember(device_id, fact)
             return Decision(
                 intent="conversation",
-                reply=f"Saved in Congee memory: {memory.text}.",
+                reply=f"Saved in Cognee memory: {memory.text}.",
                 action=None,
             )
 
@@ -104,9 +104,9 @@ class CongeeMemory:
         ):
             removed = self.clear(device_id)
             reply = (
-                "I cleared your Congee memory."
+                "I cleared your Cognee memory."
                 if removed
-                else "Congee memory is already empty."
+                else "Cognee memory is already empty."
             )
             return Decision(intent="conversation", reply=reply, action=None)
 
@@ -285,3 +285,4 @@ def _tokens(text: str) -> list[str]:
 
 def _now() -> str:
     return datetime.now(UTC).replace(microsecond=0).isoformat()
+

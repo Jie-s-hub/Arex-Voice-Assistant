@@ -1,4 +1,4 @@
-# Technical architecture
+﻿# Technical architecture
 
 ## Design goals and boundaries
 
@@ -69,8 +69,7 @@ The exact five competition commands are classified locally on the PC before the 
 2. On the first valid distance at or below 25 cm, it invokes the existing all-motor stop function immediately and latches the stop.
 3. The Uno asserts D7 HIGH for at least 500 ms and keeps it HIGH while the stop latch remains active.
 4. After recognizing 150 ms of HIGH, the rover ESP32 shows `(>_<)`, plays a local fallback warning tone, cancels recording/playback, and informs the PC.
-5. The PC returns the exact spoken phrase: “Obstacle detected. Vehicle stopped.”
-6. The Uno continues invoking the stop callback until three readings are clear at or above 32 cm. Clearing the sensor does not generate a drive command; the operator must command motion again.
+5. The PC returns the exact spoken phrase: 鈥淥bstacle detected. Vehicle stopped.鈥?6. The Uno continues invoking the stop callback until three readings are clear at or above 32 cm. Clearing the sensor does not generate a drive command; the operator must command motion again.
 
 ## ESP32 state model
 
@@ -129,13 +128,13 @@ After the original `mecanum_car_v2.3.ino` was supplied, a second directly upload
 | `app.py` | FastAPI health route, authenticated WebSocket, task cancellation, protocol routing |
 | `audio.py` | Bounded PCM accumulation and correct WAV header generation |
 | `intent.py` | Deterministic classifier for the five required commands |
-| `congee.py` | Local explicit long-term memory store and memory voice commands |
+| `cognee.py` | Local explicit long-term memory store and memory voice commands |
 | `ai.py` | OpenAI transcription, Responses structured output, TTS, cached warning speech |
 | `models.py` | Strict device/action types and AI JSON Schema |
 | `conversation.py` | Four-turn in-memory context per rover |
 | `config.py` | Environment-only secrets and model configuration |
 
-Congee memory is stored locally on the PC, defaults to `pc_server/data/congee_memory.json`, and is ignored by Git. It only stores explicit memories such as “Remember that my robot is called AURA,” then injects relevant saved facts into later AI turns.
+Cognee memory is stored locally on the PC, defaults to `pc_server/data/cognee_memory.json`, and is ignored by Git. It only stores explicit memories such as "Remember that my robot is called AURA," then injects relevant saved facts into later AI turns.
 
 ## OpenAI integration
 
@@ -154,31 +153,31 @@ Model names are environment variables so competition-day account availability ca
 
 ```text
 AURA-Rover/
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── protocols.md
-│   ├── risk-and-testing.md
-│   ├── roadmap.md
-│   └── wiring.md
-├── firmware/
-│   ├── rover_esp32/
-│   │   ├── include/
-│   │   ├── src/
-│   │   └── platformio.ini
-│   ├── smart_home_esp32/
-│   │   ├── include/
-│   │   ├── src/
-│   │   └── platformio.ini
-│   └── uno_integration/
-│       ├── examples/
-│       ├── src/
-│       └── library.properties
-├── pc_server/
-│   ├── src/aura_server/
-│   ├── tests/
-│   └── pyproject.toml
-└── protocol/schemas/
+鈹溾攢鈹€ README.md
+鈹溾攢鈹€ docs/
+鈹?  鈹溾攢鈹€ architecture.md
+鈹?  鈹溾攢鈹€ protocols.md
+鈹?  鈹溾攢鈹€ risk-and-testing.md
+鈹?  鈹溾攢鈹€ roadmap.md
+鈹?  鈹斺攢鈹€ wiring.md
+鈹溾攢鈹€ firmware/
+鈹?  鈹溾攢鈹€ rover_esp32/
+鈹?  鈹?  鈹溾攢鈹€ include/
+鈹?  鈹?  鈹溾攢鈹€ src/
+鈹?  鈹?  鈹斺攢鈹€ platformio.ini
+鈹?  鈹溾攢鈹€ smart_home_esp32/
+鈹?  鈹?  鈹溾攢鈹€ include/
+鈹?  鈹?  鈹溾攢鈹€ src/
+鈹?  鈹?  鈹斺攢鈹€ platformio.ini
+鈹?  鈹斺攢鈹€ uno_integration/
+鈹?      鈹溾攢鈹€ examples/
+鈹?      鈹溾攢鈹€ src/
+鈹?      鈹斺攢鈹€ library.properties
+鈹溾攢鈹€ pc_server/
+鈹?  鈹溾攢鈹€ src/aura_server/
+鈹?  鈹溾攢鈹€ tests/
+鈹?  鈹斺攢鈹€ pyproject.toml
+鈹斺攢鈹€ protocol/schemas/
 ```
 
 ## Operational degradation
@@ -198,7 +197,8 @@ AURA-Rover/
 - Give voice-request and obstacle events separate wires if one additional GPIO becomes available; the current one-wire pulse scheme is intentionally bounded but less observable.
 - Use WSS/HTTPS with device certificates on networks that are not isolated.
 - Add OTA firmware signing, NVS-backed command counters, and a persistent audit log.
-- Replace the lightweight Congee JSON memory with a graph/vector memory backend if the project later needs document-scale research memory.
+- Replace the lightweight Cognee JSON memory with a graph/vector memory backend if the project later needs document-scale research memory.
 - Add battery voltage/current monitoring and low-battery speech warnings.
 - Add on-device wake-word recognition so PS2 push-to-talk becomes optional.
 - Add localization, camera perception, and navigation only as separate layers; never couple them into the Uno's emergency stop.
+

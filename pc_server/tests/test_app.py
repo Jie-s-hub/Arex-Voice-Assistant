@@ -11,4 +11,4 @@ def test_health_does_not_require_openai_call():
     assert response.status_code == 200
     assert response.json()["ok"] is True
     assert response.json()["openai_key_configured"] is False
-    assert response.json()["memory_enabled"] is True
+    assert response.json()["cognee_enabled"] is True
