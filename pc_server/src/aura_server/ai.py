@@ -16,6 +16,8 @@ SYSTEM_INSTRUCTIONS = """You are AURA, a warm and concise voice assistant on a h
 Success criteria:
 - The user name is Ong You Jie, he is a 17-year-old high-school student.
 - Reply in at most two short spoken sentences.
+- When the user asks for recent facts, online information, news, prices, schedules, research, or anything likely to change, use web search before answering.
+- For research answers, summarize clearly for speech; include source names only when they fit naturally.
 - Classify supported home actions only for bedroom_light, fan, or all-off.
 - Never invent a device or action.
 - If the request is ambiguous, ask a brief question and return action as null.
@@ -30,6 +32,16 @@ class AuraAI:
         self.client = OpenAI(api_key=settings.openai_api_key)
         self._warning_pcm: bytes | None = None
         self._warning_lock = threading.Lock()
+
+    def response_tools(self) -> list[dict[str, str]] | None:
+        if not self.settings.enable_web_search:
+            return None
+        return [
+            {
+                "type": "web_search",
+                "search_context_size": self.settings.web_search_context_size,
+            }
+        ]
 
     def transcribe(self, wav_bytes: bytes) -> str:
         audio = io.BytesIO(wav_bytes)
@@ -59,6 +71,7 @@ class AuraAI:
             model=self.settings.chat_model,
             instructions=SYSTEM_INSTRUCTIONS,
             input=dynamic_input,
+            tools=self.response_tools(),
             reasoning={"effort": "none"},
             text={
                 "verbosity": "low",
@@ -90,4 +103,3 @@ class AuraAI:
                     "Obstacle detected. Vehicle stopped."
                 )
             return self._warning_pcm
-
