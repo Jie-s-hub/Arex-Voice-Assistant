@@ -36,13 +36,13 @@ The Uno is the safety authority. An obstacle stops the motors even if Wi-Fi, the
 
 ```text
 AURA-Rover/
-鈹溾攢鈹€ docs/                         Architecture, wiring, protocols, plans
-鈹溾攢鈹€ firmware/
-鈹?  鈹溾攢鈹€ uno_integration/          Drop-in module for the existing rover sketch
-鈹?  鈹溾攢鈹€ rover_esp32/              Voice/OLED/network firmware
-鈹?  鈹斺攢鈹€ smart_home_esp32/         Relay-node firmware
-鈹溾攢鈹€ pc_server/                    Python/FastAPI/OpenAI application
-鈹斺攢鈹€ protocol/schemas/             Machine-readable JSON Schemas
+|-- docs/                         Architecture, wiring, protocols, plans
+|-- firmware/
+|   |-- uno_integration/          Drop-in module for the existing rover sketch
+|   |-- rover_esp32/              Voice/OLED/network firmware
+|   \-- smart_home_esp32/         Relay-node firmware
+|-- pc_server/                    Python/FastAPI/OpenAI application
+\-- protocol/schemas/             Machine-readable JSON Schemas
 ```
 
 ## Quick start
@@ -81,7 +81,7 @@ Detailed staged bring-up is in [roadmap.md](docs/roadmap.md). Do not test with t
 - Long-term memory: local Cognee JSON store, enabled by `AURA_ENABLE_COGNEE=true`
 - Text-to-speech: `gpt-4o-mini-tts`, raw 24 kHz mono PCM
 
-All model IDs are environment variables. The PC鈥攏ot either microcontroller鈥攈olds the OpenAI API key.
+All model IDs are environment variables. The PC, not either microcontroller, holds the OpenAI API key.
 
 ## Safety boundary
 

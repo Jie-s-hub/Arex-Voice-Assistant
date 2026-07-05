@@ -69,7 +69,8 @@ The exact five competition commands are classified locally on the PC before the 
 2. On the first valid distance at or below 25 cm, it invokes the existing all-motor stop function immediately and latches the stop.
 3. The Uno asserts D7 HIGH for at least 500 ms and keeps it HIGH while the stop latch remains active.
 4. After recognizing 150 ms of HIGH, the rover ESP32 shows `(>_<)`, plays a local fallback warning tone, cancels recording/playback, and informs the PC.
-5. The PC returns the exact spoken phrase: 鈥淥bstacle detected. Vehicle stopped.鈥?6. The Uno continues invoking the stop callback until three readings are clear at or above 32 cm. Clearing the sensor does not generate a drive command; the operator must command motion again.
+5. The PC returns the exact spoken phrase: "Obstacle detected. Vehicle stopped."
+6. The Uno continues invoking the stop callback until three readings are clear at or above 32 cm. Clearing the sensor does not generate a drive command; the operator must command motion again.
 
 ## ESP32 state model
 
@@ -153,31 +154,31 @@ Model names are environment variables so competition-day account availability ca
 
 ```text
 AURA-Rover/
-鈹溾攢鈹€ README.md
-鈹溾攢鈹€ docs/
-鈹?  鈹溾攢鈹€ architecture.md
-鈹?  鈹溾攢鈹€ protocols.md
-鈹?  鈹溾攢鈹€ risk-and-testing.md
-鈹?  鈹溾攢鈹€ roadmap.md
-鈹?  鈹斺攢鈹€ wiring.md
-鈹溾攢鈹€ firmware/
-鈹?  鈹溾攢鈹€ rover_esp32/
-鈹?  鈹?  鈹溾攢鈹€ include/
-鈹?  鈹?  鈹溾攢鈹€ src/
-鈹?  鈹?  鈹斺攢鈹€ platformio.ini
-鈹?  鈹溾攢鈹€ smart_home_esp32/
-鈹?  鈹?  鈹溾攢鈹€ include/
-鈹?  鈹?  鈹溾攢鈹€ src/
-鈹?  鈹?  鈹斺攢鈹€ platformio.ini
-鈹?  鈹斺攢鈹€ uno_integration/
-鈹?      鈹溾攢鈹€ examples/
-鈹?      鈹溾攢鈹€ src/
-鈹?      鈹斺攢鈹€ library.properties
-鈹溾攢鈹€ pc_server/
-鈹?  鈹溾攢鈹€ src/aura_server/
-鈹?  鈹溾攢鈹€ tests/
-鈹?  鈹斺攢鈹€ pyproject.toml
-鈹斺攢鈹€ protocol/schemas/
+|-- README.md
+|-- docs/
+|   |-- architecture.md
+|   |-- protocols.md
+|   |-- risk-and-testing.md
+|   |-- roadmap.md
+|   \-- wiring.md
+|-- firmware/
+|   |-- rover_esp32/
+|   |   |-- include/
+|   |   |-- src/
+|   |   \-- platformio.ini
+|   |-- smart_home_esp32/
+|   |   |-- include/
+|   |   |-- src/
+|   |   \-- platformio.ini
+|   \-- uno_integration/
+|       |-- examples/
+|       |-- src/
+|       \-- library.properties
+|-- pc_server/
+|   |-- src/aura_server/
+|   |-- tests/
+|   \-- pyproject.toml
+\-- protocol/schemas/
 ```
 
 ## Operational degradation

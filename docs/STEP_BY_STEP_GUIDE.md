@@ -1,4 +1,4 @@
-﻿# AURA Rover 鈥?Step-by-Step Build Guide
+# AURA Rover - Step-by-Step Build Guide
 
 This guide explains how to turn the existing PS2-controlled mecanum rover into AURA without redesigning its drive system.
 
@@ -23,7 +23,7 @@ You also need:
 - The Arduino Uno USB cable
 - A multimeter
 - Breadboard and jumper wires
-- 10 k惟 and 20 k惟 resistors
+- 10 kOhm and 20 kOhm resistors
 - A regulated 5 V buck converter rated for at least 2 A
 - A safe low-voltage lamp and fan for relay testing
 
@@ -98,7 +98,7 @@ The Uno has only one safe pin left, so use NewPing's one-pin mode:
 | VCC | Uno 5V |
 | GND | Uno GND |
 | TRIG | Uno D11 directly |
-| ECHO | Uno D11 through a 2.2 k惟 resistor |
+| ECHO | Uno D11 through a 2.2 kOhm resistor |
 
 Do not connect ECHO directly to the shared D11 node without the resistor. Keep the sensor facing forward and away from the spinning wheels.
 
@@ -109,9 +109,9 @@ Never connect the Uno's 5 V D7 output directly to an ESP32 pin.
 Build this divider:
 
 ```text
-Uno D7 -------- 10 k惟 --------+-------- ESP32 GPIO25
+Uno D7 -------- 10 kOhm ------+-------- ESP32 GPIO25
                               |
-                            20 k惟
+                            20 kOhm
                               |
 Shared GND -------------------+
 ```
@@ -165,7 +165,7 @@ Do not place the rover on the floor until this test passes consistently.
 Use the rover battery only through a regulated buck converter:
 
 ```text
-7.4 V battery 鈫?fuse/switch 鈫?5 V buck converter
+7.4 V battery -> fuse/switch -> 5 V buck converter
 ```
 
 Connect the regulated 5 V output to:
@@ -191,7 +191,7 @@ Connect all logic grounds at a common ground point.
 | SDA | GPIO21 |
 | SCL | GPIO22 |
 
-The firmware expects address `0x3C` and an SH1106 128脳64 display.
+The firmware expects address `0x3C` and an SH1106 128x64 display.
 
 If the screen stays blank:
 
@@ -223,7 +223,7 @@ Keep microphone wires short and away from the motors and L298N wiring.
 | LRC | GPIO13 |
 | DIN | GPIO32 |
 | SPK+ | Speaker + |
-| SPK鈭?| Speaker 鈭?|
+| SPK- | Speaker - |
 
 Important: neither speaker wire connects to ground. The MAX98357A uses a bridged speaker output.
 
@@ -518,7 +518,8 @@ Keep the rover's wheels raised.
 
 1. Press the selected PS2 voice button once.
 2. Confirm the OLED displays `(O_O)`.
-3. Say: 鈥淭urn on bedroom light.鈥?4. Stop speaking.
+3. Say: "Turn on bedroom light."
+4. Stop speaking.
 5. Confirm the OLED changes to `(-_-)`.
 6. Confirm the correct relay turns on.
 7. Confirm AURA speaks its response while showing `(^o^)`.
