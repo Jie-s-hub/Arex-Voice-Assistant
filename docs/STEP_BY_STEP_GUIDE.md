@@ -431,6 +431,8 @@ AURA_LOG_LEVEL=INFO
 AURA_MAX_AUDIO_SECONDS=8
 AURA_ENABLE_WEB_SEARCH=true
 AURA_WEB_SEARCH_CONTEXT_SIZE=low
+AURA_ENABLE_MEMORY=true
+AURA_MEMORY_PATH=data/congee_memory.json
 ```
 
 `ROVER_TOKEN` must exactly match the rover ESP32 value.
@@ -438,6 +440,8 @@ AURA_WEB_SEARCH_CONTEXT_SIZE=low
 Never place `OPENAI_API_KEY` in Arduino or ESP32 code.
 
 With web search enabled, AURA can answer current-information questions such as recent robotics news or online research prompts. For more detail, read `docs/ONLINE_RESEARCH.md`.
+
+With Congee memory enabled, AURA can remember explicit facts you ask it to save. For more detail, read `docs/CONGEE_MEMORY.md`.
 
 ## 20. Run the PC tests
 
@@ -530,6 +534,13 @@ Test every required command:
 - Turn everything off
 
 Also ask a normal question. A normal conversation must not activate a relay.
+
+Test Congee memory:
+
+1. Say: "Remember that my robot is called AURA."
+2. Wait for AURA to confirm the memory was saved.
+3. Say: "What do you remember?"
+4. Confirm AURA recalls that the robot is called AURA.
 
 ## 24. Test the exact obstacle workflow
 

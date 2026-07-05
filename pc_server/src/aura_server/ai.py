@@ -8,6 +8,7 @@ from collections.abc import Sequence
 from openai import OpenAI
 
 from .config import Settings
+from .congee import CongeeMemory
 from .intent import classify_known_home_command
 from .models import DECISION_JSON_SCHEMA, Decision
 
@@ -18,6 +19,8 @@ Success criteria:
 - Reply in at most two short spoken sentences.
 - When the user asks for recent facts, online information, news, prices, schedules, research, or anything likely to change, use web search before answering.
 - For research answers, summarize clearly for speech; include source names only when they fit naturally.
+- Use the Congee long-term memory section when it is relevant.
+- Never invent memories. If a fact is not in the current transcript, recent conversation, or Congee memory, say you do not remember it.
 - Classify supported home actions only for bedroom_light, fan, or all-off.
 - Never invent a device or action.
 - If the request is ambiguous, ask a brief question and return action as null.
@@ -30,6 +33,9 @@ class AuraAI:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.client = OpenAI(api_key=settings.openai_api_key)
+        self.memory = (
+            CongeeMemory(settings.memory_path) if settings.enable_memory else None
+        )
         self._warning_pcm: bytes | None = None
         self._warning_lock = threading.Lock()
 
@@ -55,7 +61,14 @@ class AuraAI:
         text = result if isinstance(result, str) else result.text
         return text.strip()
 
-    def decide(self, transcript: str, history: Sequence[tuple[str, str]]) -> Decision:
+    def decide(
+        self, transcript: str, history: Sequence[tuple[str, str]], device_id: str
+    ) -> Decision:
+        if self.memory is not None:
+            memory_decision = self.memory.handle_command(device_id, transcript)
+            if memory_decision is not None:
+                return memory_decision
+
         known = classify_known_home_command(transcript)
         if known is not None:
             return known
@@ -63,7 +76,13 @@ class AuraAI:
         context = "\n".join(
             f"User: {user}\nAURA: {assistant}" for user, assistant in history[-4:]
         )
+        memory_context = (
+            self.memory.format_context(device_id, transcript)
+            if self.memory is not None
+            else "(memory disabled)"
+        )
         dynamic_input = (
+            f"Congee long-term memory for this rover:\n{memory_context}\n\n"
             f"Recent conversation:\n{context or '(none)'}\n\n"
             f"Current user transcript: {transcript}"
         )

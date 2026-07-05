@@ -8,6 +8,8 @@ __pycache__/
 .vscode/
 firmware/**/include/secrets.h
 firmware/**/data/*.pcm
+pc_server/data/*.json
+pc_server/data/*.json.tmp
 
 # Prerequisites
 *.d

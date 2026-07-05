@@ -129,10 +129,13 @@ After the original `mecanum_car_v2.3.ino` was supplied, a second directly upload
 | `app.py` | FastAPI health route, authenticated WebSocket, task cancellation, protocol routing |
 | `audio.py` | Bounded PCM accumulation and correct WAV header generation |
 | `intent.py` | Deterministic classifier for the five required commands |
+| `congee.py` | Local explicit long-term memory store and memory voice commands |
 | `ai.py` | OpenAI transcription, Responses structured output, TTS, cached warning speech |
 | `models.py` | Strict device/action types and AI JSON Schema |
 | `conversation.py` | Four-turn in-memory context per rover |
 | `config.py` | Environment-only secrets and model configuration |
+
+Congee memory is stored locally on the PC, defaults to `pc_server/data/congee_memory.json`, and is ignored by Git. It only stores explicit memories such as “Remember that my robot is called AURA,” then injects relevant saved facts into later AI turns.
 
 ## OpenAI integration
 
@@ -195,6 +198,7 @@ AURA-Rover/
 - Give voice-request and obstacle events separate wires if one additional GPIO becomes available; the current one-wire pulse scheme is intentionally bounded but less observable.
 - Use WSS/HTTPS with device certificates on networks that are not isolated.
 - Add OTA firmware signing, NVS-backed command counters, and a persistent audit log.
+- Replace the lightweight Congee JSON memory with a graph/vector memory backend if the project later needs document-scale research memory.
 - Add battery voltage/current monitoring and low-battery speech warnings.
 - Add on-device wake-word recognition so PS2 push-to-talk becomes optional.
 - Add localization, camera perception, and navigation only as separate layers; never couple them into the Uno's emergency stop.

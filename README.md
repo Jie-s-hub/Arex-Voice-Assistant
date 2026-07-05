@@ -11,7 +11,7 @@ AURA adds voice interaction, an OLED emotion display, obstacle safety, Wi-Fi AI 
 - A directly uploadable integration of the supplied `mecanum_car_v2.3.ino`, with its original drive behavior preserved.
 - Rover ESP32 firmware for two independent I2S buses (microphone and speaker), WebSocket audio streaming, OLED faces, safety warnings, and smart-home commands.
 - Smart-home ESP32 firmware with authenticated, idempotent HTTP/JSON relay control.
-- A FastAPI PC server using the OpenAI Audio and Responses APIs, hosted web search for online research, deterministic safety-critical home-command recognition, structured AI output, and PCM speech streaming.
+- A FastAPI PC server using the OpenAI Audio and Responses APIs, hosted web search for online research, local Congee long-term memory, deterministic safety-critical home-command recognition, structured AI output, and PCM speech streaming.
 - JSON Schemas, wiring tables, architecture notes, bring-up roadmap, risk register, and tests.
 
 ## System at a glance
@@ -53,6 +53,7 @@ For a complete beginner-friendly procedure, follow [STEP_BY_STEP_GUIDE.md](docs/
    For the supplied mecanum sketch, use the corrected pin plan in [YOUR_MECANUM_CODE_INTEGRATION.md](docs/YOUR_MECANUM_CODE_INTEGRATION.md).
    To test only the rover ESP32 and its peripherals first, use [ESP32_ONLY_TEST.md](docs/ESP32_ONLY_TEST.md).
    To let AURA answer current online questions, enable [ONLINE_RESEARCH.md](docs/ONLINE_RESEARCH.md).
+   To let AURA remember explicit facts, enable [CONGEE_MEMORY.md](docs/CONGEE_MEMORY.md).
 2. Add `firmware/uno_integration/src/AuraSafety.*` to the existing Uno project and follow the integration example. Map the stop callback to the existing motor-stop function and one unused PS2 button to `voicePressed`.
 3. Copy each ESP32 `include/secrets.example.h` to `include/secrets.h`, then set Wi-Fi, server, node, and token values.
 4. Install PlatformIO, build, and upload each ESP32 project from its own directory.
@@ -77,6 +78,7 @@ Detailed staged bring-up is in [roadmap.md](docs/roadmap.md). Do not test with t
 - Speech-to-text: `gpt-4o-mini-transcribe`
 - Conversation and structured intent: `gpt-5.5`, low-latency reasoning setting
 - Online research: Responses API hosted `web_search` tool, enabled by `AURA_ENABLE_WEB_SEARCH=true`
+- Long-term memory: local Congee JSON store, enabled by `AURA_ENABLE_MEMORY=true`
 - Text-to-speech: `gpt-4o-mini-tts`, raw 24 kHz mono PCM
 
 All model IDs are environment variables. The PC—not either microcontroller—holds the OpenAI API key.
