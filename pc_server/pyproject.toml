@@ -1,0 +1,34 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "aura-rover-server"
+version = "1.0.0"
+description = "FastAPI voice and AI bridge for the AURA Rover"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.30,<1",
+  "openai>=2.43,<3",
+  "pydantic>=2.10,<3",
+  "python-dotenv>=1.0,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<10",
+  "pytest-asyncio>=0.25,<2",
+  "httpx>=0.28,<1",
+]
+
+[project.scripts]
+aura-server = "aura_server.main:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aura_server"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]

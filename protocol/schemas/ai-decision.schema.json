@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aura-rover.local/schemas/ai-decision.schema.json",
+  "title": "AURA AI decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["intent", "reply", "action"],
+  "properties": {
+    "intent": {"enum": ["conversation", "smart_home"]},
+    "reply": {"type": "string", "minLength": 1, "maxLength": 500},
+    "action": {
+      "oneOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["device", "state"],
+          "properties": {
+            "device": {"enum": ["bedroom_light", "fan", "all"]},
+            "state": {"enum": ["on", "off"]}
+          },
+          "allOf": [
+            {
+              "if": {"properties": {"device": {"const": "all"}}, "required": ["device"]},
+              "then": {"properties": {"state": {"const": "off"}}}
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+
