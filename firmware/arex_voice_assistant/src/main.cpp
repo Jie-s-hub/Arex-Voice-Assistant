@@ -1,8 +1,8 @@
 #include <Arduino.h>
 
-#include "AudioAssistantApp.h"
+#include "ArexVoiceAssistant.h"
 
-aura::AudioAssistantApp app;
+arex::ArexVoiceAssistant app;
 
 void setup() { app.begin(); }
 

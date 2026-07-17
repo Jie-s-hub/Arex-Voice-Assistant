@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
 
-namespace aura {
+namespace arex {
 
 enum class Emotion : uint8_t {
   Idle,
@@ -28,4 +28,4 @@ class EmotionDisplay {
   Emotion current_ = Emotion::Idle;
 };
 
-}  // namespace aura
+}  // namespace arex

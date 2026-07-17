@@ -1,12 +1,12 @@
 # Wiring
 
-Default pins are defined in `firmware/ai_audio_esp32/include/AppConfig.h`.
+Default pins are defined in `firmware/arex_voice_assistant/include/AppConfig.h`.
 
 ## ESP32 pin map
 
 | Part | Signal | ESP32 pin | Notes |
 |---|---:|---:|---|
-| Voice button | Button input | GPIO0 | Uses the common BOOT button by default, active LOW |
+| Fallback voice button | Button input | GPIO0 | Uses the common BOOT button by default, active LOW |
 | OLED | SDA | GPIO21 | I2C address defaults to `0x3C` |
 | OLED | SCL | GPIO22 | Shared I2C bus |
 | INMP441 mic | SCK / BCLK | GPIO26 | I2S receive bus |
@@ -25,6 +25,8 @@ Default pins are defined in `firmware/ai_audio_esp32/include/AppConfig.h`.
 - Keep microphone wires short and physically separated from speaker output wires.
 - Start with low speaker volume to avoid feedback into the microphone.
 
-## Button behavior
+## Wake and Button Behavior
 
-The default voice trigger is the ESP32 dev-board BOOT button on GPIO0. Press it after the device has already booted. To use another button, change `kVoiceButtonPin` in `AppConfig.h`; wire one side to the selected GPIO and the other side to ground when `kVoiceButtonActiveLow` is `true`.
+Arex listens for voice activity while idle. When the microphone RMS rises above `kWakeRmsThreshold`, the ESP32 streams a wake candidate to the PC. The PC accepts the turn only when the transcript starts with the wake word, such as `Arex, what time is it?`.
+
+The fallback trigger is the ESP32 dev-board BOOT button on GPIO0. Press it after the device has already booted. To use another button, change `kVoiceButtonPin` in `AppConfig.h`; wire one side to the selected GPIO and the other side to ground when `kVoiceButtonActiveLow` is `true`.

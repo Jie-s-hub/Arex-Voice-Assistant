@@ -3,9 +3,9 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "aura-audio-server"
+name = "arex-voice-assistant-server"
 version = "1.0.0"
-description = "FastAPI voice and AI bridge for an ESP32 wireless mic and speaker"
+description = "FastAPI voice and AI bridge for Arex Voice Assistant"
 requires-python = ">=3.11"
 dependencies = [
   "fastapi>=0.115,<1",
@@ -23,10 +23,10 @@ dev = [
 ]
 
 [project.scripts]
-aura-server = "aura_server.main:run"
+arex-server = "arex_server.main:run"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/aura_server"]
+packages = ["src/arex_server"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

@@ -15,7 +15,7 @@ def run() -> None:
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
     )
     uvicorn.run(
-        "aura_server.app:app",
+        "arex_server.app:app",
         host=settings.host,
         port=settings.port,
         log_level=settings.log_level.lower(),
@@ -24,4 +24,3 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
-

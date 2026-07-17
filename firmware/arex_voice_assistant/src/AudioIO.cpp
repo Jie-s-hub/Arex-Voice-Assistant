@@ -4,7 +4,7 @@
 
 #include "AppConfig.h"
 
-namespace aura {
+namespace arex {
 
 bool AudioIO::begin() {
   return installMicrophone() && installSpeaker();
@@ -89,4 +89,4 @@ bool AudioIO::writeSpeaker(const uint8_t* pcm, size_t length) {
          written == length;
 }
 
-}  // namespace aura
+}  // namespace arex

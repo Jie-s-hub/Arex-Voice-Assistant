@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 from collections.abc import Sequence
 
 from openai import OpenAI
@@ -11,7 +12,7 @@ from .cognee import CogneeMemory
 from .models import DECISION_JSON_SCHEMA, Decision
 
 
-SYSTEM_INSTRUCTIONS = """You are AURA, a warm and concise voice assistant running through an ESP32 wireless microphone and speaker.
+SYSTEM_INSTRUCTIONS = """You are Arex, a warm and concise voice assistant running through an ESP32 wireless microphone and speaker.
 Success criteria:
 - The user name is Ong You Jie, he is a 17-year-old high-school student.
 - Reply in at most two short spoken sentences.
@@ -23,7 +24,29 @@ Success criteria:
 """
 
 
-class AuraAI:
+def split_wake_word(transcript: str, aliases: Sequence[str]) -> tuple[bool, str]:
+    """Return whether the transcript starts with a wake word and the command."""
+
+    text = re.sub(r"[-_]+", " ", transcript).strip()
+    if not text:
+        return False, ""
+
+    normalized_aliases = sorted(
+        {alias.strip().lower() for alias in aliases if alias.strip()},
+        key=len,
+        reverse=True,
+    )
+    for alias in normalized_aliases:
+        alias_pattern = r"\s+".join(re.escape(part) for part in alias.split())
+        pattern = rf"^\s*(?:hey\s+|ok(?:ay)?\s+)?{alias_pattern}(?:\b|[\s,.:;!?]+)(.*)$"
+        match = re.match(pattern, text, flags=re.IGNORECASE)
+        if match:
+            command = match.group(1).strip(" \t\r\n,.:;!?")
+            return True, command
+    return False, ""
+
+
+class ArexAI:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.client = OpenAI(api_key=settings.openai_api_key)
@@ -43,15 +66,19 @@ class AuraAI:
 
     def transcribe(self, wav_bytes: bytes) -> str:
         audio = io.BytesIO(wav_bytes)
-        audio.name = "aura-capture.wav"
+        audio.name = "arex-capture.wav"
         result = self.client.audio.transcriptions.create(
             model=self.settings.transcribe_model,
             file=audio,
             response_format="text",
-            prompt="Short voice notes and questions captured by an ESP32 wireless microphone.",
+            prompt="Short voice notes and questions captured by an ESP32 wireless microphone. The wake word is Arex.",
         )
         text = result if isinstance(result, str) else result.text
         return text.strip()
+
+    def split_wake_word(self, transcript: str) -> tuple[bool, str]:
+        aliases = (self.settings.wake_word, *self.settings.wake_word_aliases)
+        return split_wake_word(transcript, aliases)
 
     def decide(
         self, transcript: str, history: Sequence[tuple[str, str]], device_id: str
@@ -62,7 +89,7 @@ class AuraAI:
                 return memory_decision
 
         context = "\n".join(
-            f"User: {user}\nAURA: {assistant}" for user, assistant in history[-4:]
+            f"User: {user}\nArex: {assistant}" for user, assistant in history[-4:]
         )
         memory_context = (
             self.memory.format_context(device_id, transcript)
@@ -84,7 +111,7 @@ class AuraAI:
                 "verbosity": "low",
                 "format": {
                     "type": "json_schema",
-                    "name": "aura_decision",
+                    "name": "arex_decision",
                     "strict": True,
                     "schema": DECISION_JSON_SCHEMA,
                 },
@@ -98,7 +125,7 @@ class AuraAI:
             model=self.settings.tts_model,
             voice=self.settings.tts_voice,
             input=text,
-            instructions="Speak warmly, clearly, and briefly as a friendly AI audio assistant.",
+            instructions="Speak warmly, clearly, and briefly as Arex, a friendly AI audio assistant.",
             response_format="pcm",
         ) as response:
             return response.read()

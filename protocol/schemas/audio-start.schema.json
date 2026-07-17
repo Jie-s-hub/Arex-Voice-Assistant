@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aura-audio.local/schemas/audio-start.schema.json",
-  "title": "AURA audio start",
+  "$id": "https://arex-audio.local/schemas/audio-start.schema.json",
+  "title": "Arex audio start",
   "type": "object",
   "additionalProperties": false,
   "required": ["version", "type", "session_id", "format", "sample_rate_hz", "channels"],
@@ -9,6 +9,7 @@
     "version": {"const": 1},
     "type": {"const": "audio.start"},
     "session_id": {"type": "string", "minLength": 8, "maxLength": 64},
+    "trigger": {"enum": ["button", "wake"], "default": "button"},
     "format": {"const": "pcm_s16le"},
     "sample_rate_hz": {"type": "integer", "minimum": 8000, "maximum": 48000},
     "channels": {"const": 1}

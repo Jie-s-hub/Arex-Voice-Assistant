@@ -1,16 +1,16 @@
 import pytest
 from pydantic import ValidationError
 
-from aura_server.models import Decision
+from arex_server.models import Decision
 
 
 def test_conversation_decision_is_valid():
     decision = Decision.model_validate(
-        {"intent": "conversation", "reply": "Hello from AURA."}
+        {"intent": "conversation", "reply": "Hello from Arex."}
     )
 
     assert decision.intent == "conversation"
-    assert decision.reply == "Hello from AURA."
+    assert decision.reply == "Hello from Arex."
 
 
 def test_action_fields_are_rejected():

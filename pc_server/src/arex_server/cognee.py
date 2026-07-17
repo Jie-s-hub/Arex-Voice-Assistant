@@ -45,7 +45,7 @@ class Memory:
 
 
 class CogneeMemory:
-    """Small local long-term memory store for the AURA audio device.
+    """Small local long-term memory store for the Arex audio device.
 
     Cognee intentionally stores only explicit memories: the user has to say
     "remember that ...". This avoids silently collecting personal information

@@ -10,7 +10,7 @@ from typing import Any
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, status
 
-from .ai import AuraAI
+from .ai import ArexAI
 from .audio import AudioCapture, AudioProtocolError, capture_from_start
 from .config import Settings
 from .conversation import ConversationStore
@@ -74,13 +74,13 @@ class AppState:
     settings: Settings
     conversations: ConversationStore = field(default_factory=ConversationStore)
     connections: dict[str, AudioDeviceConnection] = field(default_factory=dict)
-    _ai: AuraAI | None = None
+    _ai: ArexAI | None = None
 
     @property
-    def ai(self) -> AuraAI:
+    def ai(self) -> ArexAI:
         if self._ai is None:
             self.settings.validate_runtime()
-            self._ai = AuraAI(self.settings)
+            self._ai = ArexAI(self.settings)
         return self._ai
 
 
@@ -96,15 +96,52 @@ async def process_turn(
         transcript = await asyncio.to_thread(state.ai.transcribe, wav)
         if not transcript:
             raise ValueError("I could not hear any speech")
+
+        should_check_wake_word = state.settings.enable_wake_word and (
+            capture.trigger == "wake" or state.settings.wake_word_required_for_button
+        )
+        wake_word_detected = True
+        ai_transcript = transcript
+        if should_check_wake_word:
+            wake_word_detected, command = state.ai.split_wake_word(transcript)
+            if not wake_word_detected:
+                await connection.send_json(
+                    {
+                        "type": "transcript",
+                        "session_id": session_id,
+                        "text": transcript,
+                        "trigger": capture.trigger,
+                        "wake_word_detected": False,
+                    }
+                )
+                await connection.send_json(
+                    {
+                        "type": "wake.ignored",
+                        "session_id": session_id,
+                        "text": transcript,
+                    }
+                )
+                await connection.send_json(
+                    {"type": "emotion", "state": "idle", "session_id": session_id}
+                )
+                return
+            ai_transcript = command or state.settings.wake_word
+
         await connection.send_json(
-            {"type": "transcript", "session_id": session_id, "text": transcript}
+            {
+                "type": "transcript",
+                "session_id": session_id,
+                "text": transcript,
+                "trigger": capture.trigger,
+                "wake_word_detected": wake_word_detected,
+            }
         )
 
         history = state.conversations.history(connection.device_id)
         decision: Decision = await asyncio.to_thread(
-            state.ai.decide, transcript, history, connection.device_id
+            state.ai.decide, ai_transcript, history, connection.device_id
         )
-        state.conversations.add(connection.device_id, transcript, decision.reply)
+        state.conversations.add(connection.device_id, ai_transcript, decision.reply)
 
         await connection.send_json(
             {
@@ -133,15 +170,17 @@ async def process_turn(
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
-    app = FastAPI(title="AURA Wireless AI Audio Server", version="1.0.0")
+    app = FastAPI(title="Arex Voice Assistant Server", version="1.0.0")
     state = AppState(settings or Settings())
-    app.state.aura = state
+    app.state.arex = state
 
     @app.get("/health")
     async def health() -> dict[str, Any]:
         return {
             "ok": True,
-            "service": "aura-audio-server",
+            "service": "arex-audio-server",
+            "wake_word": state.settings.wake_word,
+            "wake_word_enabled": state.settings.enable_wake_word,
             "connected_devices": sorted(state.connections),
             "openai_key_configured": bool(state.settings.openai_api_key),
             "cognee_enabled": state.settings.enable_cognee,

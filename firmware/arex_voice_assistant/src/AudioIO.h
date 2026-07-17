@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <driver/i2s.h>
 
-namespace aura {
+namespace arex {
 
 class AudioIO {
  public:
@@ -16,4 +16,4 @@ class AudioIO {
   bool installSpeaker();
 };
 
-}  // namespace aura
+}  // namespace arex

@@ -1,6 +1,6 @@
-﻿from aura_server.ai import AuraAI
-from aura_server.config import Settings
-from aura_server.cognee import CogneeMemory
+from arex_server.ai import ArexAI
+from arex_server.config import Settings
+from arex_server.cognee import CogneeMemory
 
 
 def test_cognee_remembers_and_recalls_explicit_fact(tmp_path):
@@ -38,20 +38,20 @@ def test_cognee_forgets_matching_memory(tmp_path):
 
 
 def test_ai_handles_memory_commands_without_openai_call(tmp_path):
-    ai = AuraAI(
+    ai = ArexAI(
         Settings(openai_api_key="sk-test", cognee_memory_path=tmp_path / "memory.json")
     )
 
-    remember = ai.decide("remember that my demo device name is AURA", (), "audio-1")
+    remember = ai.decide("remember that my demo device name is Arex", (), "audio-1")
     recall = ai.decide("what do you remember", (), "audio-1")
 
     assert remember.intent == "conversation"
     assert "I'll remember" in remember.reply
-    assert "demo device name is AURA" in recall.reply
+    assert "demo device name is Arex" in recall.reply
 
 
 def test_memory_can_be_disabled(tmp_path):
-    ai = AuraAI(
+    ai = ArexAI(
         Settings(
             openai_api_key="sk-test",
             enable_cognee=False,
@@ -64,11 +64,10 @@ def test_memory_can_be_disabled(tmp_path):
 
 def test_memory_clear_command_accepts_sentence_punctuation(tmp_path):
     memory = CogneeMemory(tmp_path / "memory.json")
-    memory.remember("audio-1", "my device is called AURA")
+    memory.remember("audio-1", "my device is called Arex")
 
     decision = memory.handle_command("audio-1", "Forget everything.")
 
     assert decision is not None
     assert "cleared" in decision.reply
     assert memory.count("audio-1") == 0
-

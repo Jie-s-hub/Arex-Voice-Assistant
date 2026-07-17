@@ -14,6 +14,7 @@ class AudioCapture:
     session_id: str
     sample_rate_hz: int
     channels: int
+    trigger: str
     max_bytes: int
     pcm: bytearray = field(default_factory=bytearray)
 
@@ -42,12 +43,18 @@ def capture_from_start(message: dict, max_audio_seconds: int) -> AudioCapture:
     sample_rate = int(message.get("sample_rate_hz", 0))
     channels = int(message.get("channels", 0))
     session_id = str(message.get("session_id", ""))
-    if not session_id or not 8000 <= sample_rate <= 48000 or channels != 1:
-        raise AudioProtocolError("invalid session_id, sample rate, or channels")
+    trigger = str(message.get("trigger", "button"))
+    if (
+        not session_id
+        or not 8000 <= sample_rate <= 48000
+        or channels != 1
+        or trigger not in {"button", "wake"}
+    ):
+        raise AudioProtocolError("invalid session_id, sample rate, channels, or trigger")
     return AudioCapture(
         session_id=session_id,
         sample_rate_hz=sample_rate,
         channels=channels,
+        trigger=trigger,
         max_bytes=sample_rate * channels * 2 * max_audio_seconds,
     )
-

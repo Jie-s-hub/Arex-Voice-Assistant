@@ -4,7 +4,7 @@
 
 #include "AppConfig.h"
 
-namespace aura {
+namespace arex {
 
 EmotionDisplay::EmotionDisplay()
     : oled_(U8G2_R0, U8X8_PIN_NONE) {}
@@ -13,7 +13,7 @@ void EmotionDisplay::begin() {
   Wire.begin(config::kOledSdaPin, config::kOledSclPin);
   oled_.setI2CAddress(config::kOledAddress << 1);  // U8g2 uses 8-bit address.
   oled_.begin();
-  show(Emotion::Idle, "Audio ready");
+  show(Emotion::Idle, "Arex ready");
 }
 
 void EmotionDisplay::show(Emotion emotion, const char* detail) {
@@ -55,4 +55,4 @@ const char* EmotionDisplay::labelFor(Emotion emotion) const {
   return "Error";
 }
 
-}  // namespace aura
+}  // namespace arex

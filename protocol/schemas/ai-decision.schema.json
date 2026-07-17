@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://aura-audio.local/schemas/ai-decision.schema.json",
-  "title": "AURA AI decision",
+  "$id": "https://arex-audio.local/schemas/ai-decision.schema.json",
+  "title": "Arex AI decision",
   "type": "object",
   "additionalProperties": false,
   "required": ["intent", "reply"],

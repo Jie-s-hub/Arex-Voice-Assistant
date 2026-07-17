@@ -3,12 +3,12 @@ import wave
 
 import pytest
 
-from aura_server.audio import AudioProtocolError, capture_from_start
+from arex_server.audio import AudioProtocolError, capture_from_start
 
 
 def start_message(**overrides):
     value = {
-        "session_id": "aura-audio-01-12345678",
+        "session_id": "arex-audio-01-12345678",
         "format": "pcm_s16le",
         "sample_rate_hz": 16000,
         "channels": 1,
@@ -36,3 +36,14 @@ def test_capture_limit_is_enforced():
 def test_invalid_format_is_rejected():
     with pytest.raises(AudioProtocolError, match="pcm_s16le"):
         capture_from_start(start_message(format="mp3"), 2)
+
+
+def test_wake_trigger_is_accepted():
+    capture = capture_from_start(start_message(trigger="wake"), max_audio_seconds=2)
+
+    assert capture.trigger == "wake"
+
+
+def test_invalid_trigger_is_rejected():
+    with pytest.raises(AudioProtocolError, match="trigger"):
+        capture_from_start(start_message(trigger="timer"), 2)
